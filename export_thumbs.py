@@ -127,6 +127,15 @@ def _try_pillow(pptx_path, out_dir, width, height, prefix):
         return False
 
 
+def _count_slides(pptx_path):
+    """读取源 PPTX 页数，用于导出后对比；失败返回 None 不告警。"""
+    try:
+        from pptx import Presentation
+        return len(Presentation(pptx_path).slides)
+    except Exception:
+        return None
+
+
 def export_thumbs(pptx_path, out_dir, width=1280, height=720, prefix="slide", pattern_only=False):
     """
     把一个 .pptx 的每页导出为 PNG。
@@ -158,8 +167,9 @@ def export_thumbs(pptx_path, out_dir, width=1280, height=720, prefix="slide", pa
 
     # 统计导出的文件
     files = [f for f in os.listdir(out_dir) if f.startswith(prefix) and f.endswith(".png")]
-    if len(files) != len(files):
-        warn(f"导出页数异常：预期 {len(files)} 页，实际 {len(files)} 页")
+    expected = _count_slides(pptx_path)
+    if expected is not None and len(files) != expected:
+        warn(f"导出页数异常：预期 {expected} 页，实际 {len(files)} 页")
     return len(files)
 
 

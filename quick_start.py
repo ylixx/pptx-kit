@@ -81,8 +81,11 @@ def generate_ai_prompt(paper_content):
     ai_instruction = f"""
 请将以下论文重构成 storyboard.json，只输出 JSON，不要任何解释。
 
-重要：pattern 字段只能使用提示词中"版式目录"里列出的具体版式名（如 text-3、timeline-4），
-禁止使用目录之外的名称（如 points-3）。
+重要：pattern 字段二选一——
+1. 推荐：写内容意图（intent）名，如 points-3、timeline-4、chart-line、swot，
+   系统会自动映射到最合适的版式；
+2. 或直接写提示词"版式目录"里列出的具体版式名（如 text-3、timeline-4）。
+禁止使用这两类之外的任何名称。
 
 论文内容：
 ---

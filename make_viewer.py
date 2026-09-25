@@ -21,7 +21,7 @@ make_viewer.py — 生成纯静态自包含的 viewer.html，支持右键切换�
       - 每项显示：模板缩略图、pattern 名、desc、字段兼容状态。
       - 当前 pattern 高亮。
       - 菜单底部「更多版式…」展开全部 intent。
-  * 点击候选 → 只改内存该页 pattern，重新渲染网格。
+  * 点击候选 → 只改内存该页 pattern，实时更新卡片（不刷新页面）。
   * 点空白处或 Esc 关闭菜单。
   * 导出：Blob 下载，文件名 storyboard.json，内容为修改后的完整 JSON。
 
@@ -50,82 +50,27 @@ def load_json(path):
         raise
 
 
-def _find_intent_for_pattern(pattern, layout_index):
-    """给定 pattern，反查它属于哪个 intent。"""
-    for intent, data in layout_index.items():
-        if pattern in data.get("candidates", []):
-            return intent
-    return None
-
-
-def _make_menu_item(page, cand_pat, intent, layout_index, pattern_to_idx):
-    """生成一个菜单项的 HTML+JS 数据。"""
-    cand_name = cand_pat.get("_name", cand_pat.get("desc", ""))
-    is_current = cand_name == page["pattern"]
-    fields = page.get("fields") or {}
-    cand_slots = set(cand_pat.get("text_slots", {}).keys())
-    fk = set(fields.keys())
-    compat = fk.issubset(cand_slots)
-    if not compat:
-        missing = sorted(fk - cand_slots)
-        compat_text = f"❌ 缺少字段: {', '.join(missing)}"
-    else:
-        compat_text = "✅ 兼容"
-
-    # 查找该 pattern 的模板缩略图
+def _make_menu_item(cand_name, cand_pat, pattern_to_idx):
+    """生成一个候选菜单项；字段兼容状态由前端按当前页动态计算。"""
     tpl_idx = pattern_to_idx.get(cand_name)
-    tpl_img = f"tpl_thumbs/tpl_{tpl_idx:03d}.png" if tpl_idx else ""
-
     return {
         "name": cand_name,
         "desc": cand_pat.get("desc", ""),
-        "compatible": compat,
-        "compat_text": compat_text,
-        "current": is_current,
-        "tpl_img": tpl_img
+        "tpl_img": f"tpl_thumbs/tpl_{tpl_idx:03d}.png" if tpl_idx else ""
     }
 
 
-def _make_all_menu_items(pages, layout_index, patterns, pattern_to_idx):
-    """生成所有菜单项（包括「更多版式…」）。"""
-    all_items = []
-    intents_seen = set()
-
-    # 先加每个页面的候选（优先）
-    for i, page in enumerate(pages, 1):
-        intent = page.get("_intent")
-        if not intent:
-            intent = _find_intent_for_pattern(page["pattern"], layout_index)
-        if not intent:
-            continue
-
-        if intent in intents_seen:
-            continue
-        intents_seen.add(intent)
-
-        candidates = layout_index.get(intent, {}).get("candidates", [])
-        for cand_name in candidates:
+def _make_intent_groups(layout_index, patterns, pattern_to_idx):
+    """生成 intent → 候选菜单项分组（供前端右键菜单使用）。"""
+    groups = {}
+    for intent, data in layout_index.items():
+        items = []
+        for cand_name in data.get("candidates", []):
             cand_pat = patterns.get(cand_name)
             if cand_pat:
-                item = _make_menu_item(page, cand_pat, intent, layout_index, pattern_to_idx)
-                item["intent"] = intent
-                all_items.append(item)
-
-    # 再加「更多版式…」展开全部 intent
-    remaining_intents = [k for k in layout_index.keys() if k not in intents_seen]
-    if remaining_intents:
-        all_items.append({
-            "name": "更多版式…",
-            "desc": "",
-            "compatible": True,
-            "compat_text": "",
-            "current": False,
-            "intent": None,
-            "is_expander": True,
-            "sub_intents": remaining_intents
-        })
-
-    return all_items
+                items.append(_make_menu_item(cand_name, cand_pat, pattern_to_idx))
+        groups[intent] = {"desc": data.get("desc", ""), "items": items}
+    return groups
 
 
 def main():
@@ -161,8 +106,10 @@ def main():
     title = sb.get("title", "Storyboard Viewer")
     n_pages = len(pages)
 
-    # 生成菜单项
-    menu_items = _make_all_menu_items(pages, li, patterns, pattern_to_idx)
+    # 生成菜单分组（intent → 候选）与各 pattern 的槽位集合
+    intent_groups = _make_intent_groups(li, patterns, pattern_to_idx)
+    slot_sets = {name: list(pat.get("text_slots", {}).keys())
+                 for name, pat in patterns.items()}
 
     # 生成 HTML
     html = f"""<!DOCTYPE html>
@@ -198,6 +145,7 @@ def main():
         .menu-separator {{ border-top: 1px solid #eee; margin: 8px 0; }}
         .menu-expander {{ padding: 8px 16px; font-style: italic; color: #666; cursor: pointer; }}
         .menu-expander:hover {{ background: #f0f0f0; }}
+        .menu-group-title {{ padding: 6px 16px; font-size: 12px; color: #888; font-weight: 700; background: #fafafa; border-bottom: 1px solid #eee; }}
         .hidden {{ display: none; }}
     </style>
 </head>
@@ -228,38 +176,71 @@ def main():
 
     <script>
         const storyboard = """ + json.dumps(sb, ensure_ascii=False) + """;
-        const menuItems = """ + json.dumps(menu_items, ensure_ascii=False) + """;
+        const intentGroups = """ + json.dumps(intent_groups, ensure_ascii=False) + """;
+        const slotSets = """ + json.dumps(slot_sets, ensure_ascii=False) + """;
+        const FALLBACK = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg==';
         let currentPage = null;
+
+        function findIntentForPattern(pattern) {
+            for (const intent in intentGroups) {
+                if (intentGroups[intent].items.some(it => it.name === pattern)) return intent;
+            }
+            return null;
+        }
+
+        function renderGroup(intent, group, page) {
+            const fk = Object.keys(page.fields || {});
+            let html = '<div class="menu-group-title">' + intent + ' · ' + (group.desc || '') + '</div>';
+            for (const item of group.items) {
+                const slots = slotSets[item.name] || [];
+                const missing = fk.filter(k => slots.indexOf(k) < 0);
+                const isCurrent = item.name === page.pattern;
+                const cls = ['menu-item'];
+                if (isCurrent) cls.push('current');
+                if (missing.length) cls.push('incompatible');
+                const compatText = missing.length ? '❌ 缺少字段: ' + missing.join(', ') : '✅ 兼容';
+                html += '<div class="' + cls.join(' ') + '" data-pat="' + item.name + '" onclick="selectPattern(this.dataset.pat)">'
+                    + '<img src="' + (item.tpl_img || FALLBACK) + '" alt="' + item.name + '">'
+                    + '<div class="menu-item-content">'
+                    + '<div class="menu-item-name">' + item.name + '</div>'
+                    + '<div class="menu-item-desc">' + item.desc + '</div>'
+                    + '<div class="menu-item-compat">' + compatText + '</div>'
+                    + '</div></div>';
+            }
+            return html;
+        }
 
         function showMenu(event, pageIdx) {
             event.preventDefault();
             currentPage = pageIdx;
-            const menu = document.getElementById('contextMenu');
             const page = storyboard.pages[pageIdx - 1];
             const intent = page._intent || findIntentForPattern(page.pattern);
-
+            const menu = document.getElementById('contextMenu');
             let html = '';
-            for (const item of menuItems) {
-                if (item.is_expander) {
-                    html += `<div class="menu-expander" onclick="showAllIntents()">📋 ${item.name}</div>`;
-                } else {
-                    const classes = ['menu-item'];
-                    if (item.current) classes.push('current');
-                    if (!item.compatible) classes.push('incompatible');
-                    html += `<div class="${classes.join(' ')}" onclick="selectPattern('${item.name}')">
-                        <img src="${item.tpl_img || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=='}" alt="${item.name}">
-                        <div class="menu-item-content">
-                            <div class="menu-item-name">${item.name}</div>
-                            <div class="menu-item-desc">${item.desc}</div>
-                            <div class="menu-item-compat">${item.compat_text}</div>
-                        </div>
-                    </div>`;
-                }
+            if (intent && intentGroups[intent]) {
+                html += renderGroup(intent, intentGroups[intent], page);
+                html += '<div class="menu-separator"></div>';
+            }
+            html += '<div class="menu-expander" onclick="showAllIntents(event)">📋 更多版式…</div>';
+            menu.innerHTML = html;
+            positionMenu(menu, event);
+        }
+
+        function showAllIntents(event) {
+            event.stopPropagation();
+            const page = storyboard.pages[currentPage - 1];
+            const menu = document.getElementById('contextMenu');
+            let html = '';
+            for (const intent in intentGroups) {
+                html += renderGroup(intent, intentGroups[intent], page);
+                html += '<div class="menu-separator"></div>';
             }
             menu.innerHTML = html;
-            menu.style.display = 'block';
+            positionMenu(menu, event);
+        }
 
-            // 定位菜单，避免超出视口
+        function positionMenu(menu, event) {
+            menu.style.display = 'block';
             const rect = event.target.getBoundingClientRect();
             menu.style.left = rect.right + 10 + 'px';
             menu.style.top = rect.top + 'px';
@@ -271,26 +252,35 @@ def main():
             }
         }
 
-        function findIntentForPattern(pattern) {
-            // 这里简化处理，实际应从 layout_index 反查
-            return null;
-        }
-
         function selectPattern(patternName) {
             if (currentPage) {
-                storyboard.pages[currentPage - 1].pattern = patternName;
-                // 重新渲染网格（简化版）
-                location.reload();
+                const page = storyboard.pages[currentPage - 1];
+                page.pattern = patternName;
+                const card = document.querySelector('.card[data-page="' + currentPage + '"]');
+                if (card) {
+                    card.dataset.pattern = patternName;
+                    const nameEl = card.querySelector('.card-pattern');
+                    if (nameEl) nameEl.textContent = patternName;
+                    const img = card.querySelector('img');
+                    const tpl = findTplImg(patternName);
+                    if (img && tpl) img.src = tpl;
+                }
             }
             closeMenu();
         }
 
-        function showAllIntents() {
-            alert('展开所有版式功能需要更复杂的 UI 实现，此处省略。');
+        function findTplImg(patternName) {
+            for (const intent in intentGroups) {
+                for (const item of intentGroups[intent].items) {
+                    if (item.name === patternName && item.tpl_img) return item.tpl_img;
+                }
+            }
+            return null;
         }
 
         function closeMenu() {
-            document.getElementById('contextMenu').style.display = 'none';
+            const menu = document.getElementById('contextMenu');
+            if (menu) menu.style.display = 'none';
             currentPage = null;
         }
 

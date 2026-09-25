@@ -11,8 +11,10 @@ pptx-kit/
 ├── patterns.json                 # 版式槽位映射（49个pattern）
 ├── layout_index.json            # intent 分类表（39个intent）
 ├── resolve_intents.py           # intent → pattern 解析器
+├── optimize_layout.py           # 版式多样性后处理（相邻不重复/频次上限）
 ├── export_thumbs.py             # PPTX 导出缩略图
 ├── make_viewer.py               # 生成 viewer.html
+├── verify_pptx.py               # 渲染产物自动质检（页数/占位残留/字段对位/图表数据）
 ├── validate_layout_index.py     # layout_index 校验脚本
 ├── template.pptx                # 49种版式模板（assets/）
 └── examples/

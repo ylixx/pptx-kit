@@ -20,8 +20,12 @@
 
 1. **只输出 JSON**，不要输出任何解释、markdown 代码块标记或多余文字。
 2. JSON 必须符合下述结构（与 storyboard.schema.json 一致）。
-3. **pattern 字段必须写下方"版式目录"里列出的具体版式名**（如 `text-3`、`timeline-4`），
-   禁止自创名称（如 `points-3`、`section-2` 等不在目录里的名字）。
+3. **pattern 字段二选一**（推荐第一种）：
+   - **写"内容意图（intent）名"**（如 `points-3`、`timeline-4`），由渲染器自动映射为最合适的
+     具体版式（映射表见 `layout_index.json`，支持 `points-2/3/4/6`、`imgtext-*`、`chart-*`、`swot`、
+     `timeline-*`、`person*` 等意图名）——**推荐**，AI 不必记忆 49 个版式名；
+   - 或直接写下方"版式目录"里列出的**具体版式名**（如 `text-3`、`timeline-4`），精确指定。
+   两种情况都禁止自创目录之外的名称。
 4. 总页数 **15～25 页**（不含特殊需要可到 28）。宁可少而精。
 5. 叙事主线：`cover → toc → section → 研究背景/问题 → 相关工作 → 方法 → 实验/结果 → 结论与贡献 → (局限与展望) → refs → thanks`，中间用 `section` 章节页分段。
 6. **每页只讲一个观点**。正文必须改写成要点式短句，禁止大段照抄论文。
@@ -73,6 +77,24 @@
 | 百分比 `pct*` | 6 字符 |
 | 参考文献 `ref*` | 60 字（英文 80 字符） |
 | `notes` | 120 字 |
+
+## 意图（intent）速查表
+
+写 intent 时优先从下表选词（系统会自动映射到最合适的具体版式）：
+
+| 意图 | 含义 | 可自动映射到的版式 |
+|---|---|---|
+| `points-2` / `points-3` / `points-4` / `points-6` | 2/3/4/6 块要点 | text-* / steps-3 / mockup-3 / cycle-4 等 |
+| `imgtext-1v1` / `imgtext-2x` / `imgtext-3` / `imgtext-4` | 图配文 | imgtext-* 系列 |
+| `timeline-4` / `timeline-5` | 时间轴 | timeline-4 / timeline2-5 |
+| `process-5` / `steps-3` | 流程进程 | process-5 / steps-3 |
+| `swot` / `compare-2` / `two-views` / `six-views` | 对比分析 | swot* / compare-2 / two-views / six-views |
+| `chart-pie` / `chart-line` / `chart-bar` / `chart-donut` | 数据图表 | chart-* 系列 |
+| `table` / `compare-data` | 表格 / 双圆环对比 | table / compare-data |
+| `person` / `person-2` / `person-3` / `person-4` / `person-6` | 人物介绍 | person* 系列 |
+| `quote` / `para` / `hero-img` / `mockup` | 引文 / 长文 / 横幅图 / 样机 | text-quote / text-frame / imgtext-wide / mockup-3 |
+| `honors-3` / `honors-6` | 荣誉奖项 | honors-3 / honors-6 |
+| `cover` / `toc` / `section` / `refs` / `qa` / `thanks` | 结构页 | 同名版式 |
 
 ## 版式目录（pattern → 槽位）
 
