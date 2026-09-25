@@ -1,0 +1,17 @@
+# 备份与临时
+*.bak
+*.bak-*
+
+# Python 缓存
+__pycache__/
+*.pyc
+
+# 缩略图 / 导出中间物
+thumbs/
+
+# 打包
+*.zip
+
+# 系统
+.DS_Store
+Thumbs.db
