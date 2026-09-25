@@ -12,10 +12,12 @@ pptx-kit/
 ├── layout_index.json            # intent 分类表（39个intent）
 ├── resolve_intents.py           # intent → pattern 解析器
 ├── optimize_layout.py           # 版式多样性后处理（相邻不重复/频次上限）
+├── checks.py                    # 共享校验（render 告警 / verify 判 FAIL）
 ├── export_thumbs.py             # PPTX 导出缩略图
 ├── make_viewer.py               # 生成 viewer.html
 ├── verify_pptx.py               # 渲染产物自动质检（页数/占位残留/字段对位/图表数据）
 ├── validate_layout_index.py     # layout_index 校验脚本
+├── tests/run_tests.py           # 自动化回归测试（39 intent 全链路）
 ├── template.pptx                # 49种版式模板（assets/）
 └── examples/
     └── storyboard.sample.json    # 示例 storyboard
@@ -80,6 +82,27 @@ python make_viewer.py storyboard.json -t thumbs/ --tpl-thumbs tpl_thumbs/ -o vie
 python validate_layout_index.py
 ```
 
+### 5. 质检渲染产物
+
+```bash
+# 页数/zip/占位残留/字段对位/图表数据/notes 全覆盖检查
+python verify_pptx.py storyboard.json output.pptx
+```
+
+### 6. 版式多样性后处理（可选，渲染前）
+
+```bash
+# 消除相邻重复、压制高频版式（自动保证字段兼容、无图不选 mockup-3）
+python optimize_layout.py storyboard.json -o storyboard.opt.json
+python render_pptx.py storyboard.opt.json -o output.pptx
+```
+
+### 7. 自动化回归测试
+
+```bash
+python tests/run_tests.py   # 纯标准库；39 intent 全链路 + 错误处理回归
+```
+
 ## 📋 新增版式三步法
 
 如需添加新版式，只需修改以下三个文件，**无需改动任何 Python 代码**：
@@ -120,6 +143,11 @@ python validate_layout_index.py
 4. **视觉节奏**：最近 2 页用过的 pattern 扣 1 分。
 
 **确定性**：同分按 pattern 名升序排序，保证每次结果一致。
+
+**失败兜底**：若某 intent 的全部候选都不满足字段兼容（如模型多写了字段），解析器保留原
+intent 名并记入 `_unresolved_intents`；渲染器遇到未知 pattern 时会自动兜底替换为
+字段兼容版式（或跳过并汇总告警），**不再中断整份渲染**。图表数据长度不一致时渲染器
+告警并截断到较短者，质检判 FAIL。
 
 ### 向后兼容
 

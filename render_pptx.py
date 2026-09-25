@@ -31,6 +31,8 @@ from pptx import Presentation
 from pptx.chart.data import CategoryChartData
 from pptx.oxml.ns import qn
 
+from checks import page_issues
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 SKILL_ROOT = os.path.dirname(HERE)
 
@@ -306,11 +308,20 @@ def fill_image(slide, shape, path, pattern_id):
     blip.set(qn("r:embed"), rId)
 
 
-def fill_chart(shape, spec, pattern_id):
+def fill_chart(shape, spec, pattern_id, prefix=""):
     try:
+        cats = spec.get("categories") or []
+        series = dict(spec.get("series") or {})
+        # 长度一致性治理：错配时告警并截断到较短者，避免错位数据静默写入
+        for name, vals in list(series.items()):
+            if len(vals) != len(cats):
+                n = min(len(vals), len(cats))
+                warn(f"[{pattern_id}] 图表{prefix}系列 '{name}' 长度 {len(vals)} "
+                     f"与 categories 长度 {len(cats)} 不一致，已截断到 {n}")
+                series[name] = vals[:n]
         cd = CategoryChartData()
-        cd.categories = spec["categories"]
-        for name, vals in spec["series"].items():
+        cd.categories = cats
+        for name, vals in series.items():
             cd.add_series(name, vals)
         shape.chart.replace_data(cd)
     except Exception as e:
@@ -334,28 +345,51 @@ def fill_table(shape, spec, pattern_id):
         warn(f"[{pattern_id}] 表格数据写入失败: {e}")
 
 
+def _fallback_pattern(patterns, page):
+    """未知 pattern 时，按字段覆盖与图片槽匹配选一个兜底版式。
+
+    优先"覆盖字段多"，其次"槽位贴近"；返回 pattern id 或 None（无任何可容纳页）。
+    """
+    fk = set((page.get("fields") or {}).keys())
+    has_img = bool(page.get("images"))
+    best, best_score = None, None
+    for pid, pat in patterns.items():
+        slots = set(pat.get("text_slots", {}))
+        if has_img and not pat.get("image_slots"):
+            continue
+        covered = len(fk & slots)
+        score = (covered, -abs(len(slots) - len(fk)))
+        if best_score is None or score > best_score:
+            best, best_score = pid, score
+    return best
+
+
 def render(storyboard, patterns, base_dir, template_path, out_path):
     pages = storyboard["pages"]
 
-    # 校验 pattern 与槽位 key
+    # 校验 pattern 与槽位 key（未知 pattern 不中断：兜底替换或跳过）
+    skipped = []
     for i, page in enumerate(pages, 1):
         pid = page.get("pattern")
         if pid not in patterns:
-            raise SystemExit(f"第 {i} 页 pattern 未知: {pid}")
+            fb = _fallback_pattern(patterns, page)
+            if fb:
+                warn(f"第 {i} 页 pattern 未知: {pid!r}，已兜底替换为字段兼容版式 '{fb}'")
+                page["_intent"] = pid
+                page["pattern"] = fb
+                pid = fb
+            else:
+                warn(f"第 {i} 页 pattern 未知: {pid!r} 且无兜底版式，跳过该页")
+                skipped.append(page)
+                continue
         pat = patterns[pid]
-        for key in (page.get("fields") or {}):
-            if key not in pat.get("text_slots", {}):
-                warn(f"第 {i} 页 [{pid}] 未知文本槽位 '{key}'，忽略")
-        for key in (page.get("images") or {}):
-            if key not in pat.get("image_slots", {}):
-                warn(f"第 {i} 页 [{pid}] 未知图片槽位 '{key}'，忽略")
-        if page.get("chart") is not None and "chart_slot" not in pat:
-            warn(f"第 {i} 页 [{pid}] 不支持 chart，忽略")
-        for key in (page.get("charts") or {}):
-            if key not in pat.get("chart_slots", {}):
-                warn(f"第 {i} 页 [{pid}] 未知图表槽位 '{key}'，忽略")
-        if page.get("table") is not None and "table_slot" not in pat:
-            warn(f"第 {i} 页 [{pid}] 不支持 table，忽略")
+        for msg in page_issues(page, pat):
+            warn(f"第 {i} 页 [{pid}] {msg}")
+
+    if skipped:
+        pages = [p for p in pages if p not in skipped]
+        storyboard = dict(storyboard)
+        storyboard["pages"] = pages
 
     donors = [patterns[p["pattern"]]["slide"] for p in pages]
     assemble_deck(template_path, donors, out_path)
@@ -396,7 +430,7 @@ def render(storyboard, patterns, base_dir, template_path, out_path):
         if page.get("chart") is not None and "chart_slot" in pat:
             shape = shape_at(slide, pat["chart_slot"], pid)
             if shape is not None:
-                fill_chart(shape, page["chart"], pid)
+                fill_chart(shape, page["chart"], pid, "chart: ")
 
         charts = page.get("charts") or {}
         for key, idx in pat.get("chart_slots", {}).items():
@@ -404,7 +438,7 @@ def render(storyboard, patterns, base_dir, template_path, out_path):
                 continue
             shape = shape_at(slide, idx, pid)
             if shape is not None:
-                fill_chart(shape, charts[key], pid)
+                fill_chart(shape, charts[key], pid, f"图表槽位 '{key}': ")
 
         if page.get("table") is not None and "table_slot" in pat:
             shape = shape_at(slide, pat["table_slot"], pid)

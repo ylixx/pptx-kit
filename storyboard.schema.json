@@ -37,7 +37,7 @@
           },
           "fields": {
             "type": "object",
-            "description": "文本槽位 key -> 文字。key 必须来自该 pattern 在 patterns.json 的 text_slots。允许用 \\n 分行。缺失的槽位会被清空。",
+            "description": "文本槽位 key -> 文字。key 必须来自该 pattern 在 patterns.json 的 text_slots；未知 key 会被渲染器忽略并告警。允许用 \\n 分行。缺失的槽位会被清空。",
             "additionalProperties": { "type": ["string", "null"] }
           },
           "images": {
@@ -51,11 +51,19 @@
             "required": ["categories", "series"],
             "additionalProperties": false,
             "properties": {
-              "categories": { "type": "array", "items": { "type": "string" } },
+              "categories": {
+                "type": "array",
+                "minItems": 1,
+                "items": { "type": "string" }
+              },
               "series": {
                 "type": "object",
-                "description": "系列名 -> 数值数组（长度与 categories 一致）",
-                "additionalProperties": { "type": "array", "items": { "type": "number" } }
+                "description": "系列名 -> 数值数组（长度必须与 categories 一致；不一致会被渲染器告警截断、质检判 FAIL）",
+                "additionalProperties": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": { "type": "number" }
+                }
               }
             }
           },
@@ -72,7 +80,12 @@
             "properties": {
               "rows": {
                 "type": "array",
-                "items": { "type": "array", "items": { "type": "string" } }
+                "minItems": 1,
+                "items": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": { "type": "string" }
+                }
               }
             }
           },

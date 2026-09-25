@@ -173,6 +173,14 @@ python pptx-kit\render_pptx.py storyboard.json -o 答辩PPT.pptx
 ✅ 已生成 答辩PPT.pptx(21 页,2 条警告)
 ```
 
+4. (可选)自动质检,检查页数/占位残留/字段对位/图表数据:
+
+```
+python pptx-kit\verify_pptx.py storyboard.json 答辩PPT.pptx
+```
+
+看到 `✅ 质检通过(0 项失败 / N 项提醒)` 就放心了;`❌ 质检未通过` 则按提示回模型修正。
+
 ### 5.4 看懂输出
 
 | 输出 | 含义 | 处理 |
@@ -181,7 +189,8 @@ python pptx-kit\render_pptx.py storyboard.json -o 答辩PPT.pptx
 | `[warn] 槽位 xx 超长` | 某处文字可能挤出文本框 | 记下页码,第 6 步删几个字 |
 | `[warn] 图片不存在` | images 里写的图没找到 | 忽略,第 6 步手动补图 |
 | `[warn] 未知槽位` | 模型写错了字段名 | 一般无害;多了就回模型要求修正 |
-| `pattern 未知: xxx` | 模型编了不存在的版式 | 回模型说:"请只用 PROMPT.md 里列出的 pattern" |
+| `[warn] pattern 未知 ... 已兜底替换` | 模型编了不存在的版式,渲染器已自动换成字段兼容的版式 | 一般无害,打开 PPT 看看排版是否满意 |
+| `[warn] 图表系列 ... 不一致,已截断` | 图表的数值个数与分类个数对不上 | 回模型修正数据,或第 6 步右键图表改数据 |
 
 ---
 
