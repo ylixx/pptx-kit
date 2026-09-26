@@ -1,329 +1,370 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>人工智能大模型发展历史研究 - 版式切换器</title>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; background: #f5f5f5; }
-        .toolbar { position: sticky; top: 0; background: white; padding: 10px 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 100; }
-        .toolbar h1 { margin: 0; font-size: 18px; }
-        .toolbar .stats { color: #666; font-size: 14px; margin: 4px 0; }
-        .toolbar button { background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
-        .toolbar button:hover { background: #0056b3; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; padding: 20px; }
-        .card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; }
-        .card:hover { transform: translateY(-2px); }
-        .card img { width: 100%; height: 120px; object-fit: cover; }
-        .card-info { padding: 12px; }
-        .card-page { font-size: 12px; color: #666; margin-bottom: 4px; }
-        .card-pattern { font-weight: bold; font-size: 14px; }
-        .context-menu { position: fixed; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 8px 0; z-index: 1000; max-height: 80vh; overflow-y: auto; display: none; }
-        .menu-item { padding: 8px 16px; cursor: pointer; display: flex; align-items: center; }
-        .menu-item:hover { background: #f0f0f0; }
-        .menu-item.current { background: #e3f2fd; }
-        .menu-item.incompatible { color: #d32f2f; }
-        .menu-item img { width: 40px; height: 40px; object-fit: cover; margin-right: 12px; border-radius: 4px; }
-        .menu-item-content { flex: 1; }
-        .menu-item-name { font-weight: bold; }
-        .menu-item-desc { font-size: 12px; color: #666; }
-        .menu-item-compat { font-size: 11px; margin-top: 2px; }
-        .menu-separator { border-top: 1px solid #eee; margin: 8px 0; }
-        .menu-expander { padding: 8px 16px; font-style: italic; color: #666; cursor: pointer; }
-        .menu-expander:hover { background: #f0f0f0; }
-        .menu-group-title { padding: 6px 16px; font-size: 12px; color: #888; font-weight: 700; background: #fafafa; border-bottom: 1px solid #eee; }
-        .hidden { display: none; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>人工智能大模型发展历史研究 - 版式切换器</title>
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; background: #f5f5f5; }
+.toolbar { position: sticky; top: 0; background: white; padding: 10px 20px; box-shadow: 0 2px 4px rgba(0,0,0,.1); z-index: 100; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.toolbar h1 { margin: 0; font-size: 18px; }
+.toolbar .stats { color: #666; font-size: 13px; }
+.toolbar .bad { color: #d32f2f; font-weight: 600; }
+.toolbar .ok { color: #2e7d32; font-weight: 600; }
+.toolbar button { background: #007bff; color: white; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; }
+.toolbar button:hover { background: #0056b3; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; padding: 20px; }
+.card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.1); cursor: pointer; transition: transform .15s, box-shadow .15s; user-select: none; }
+.card:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,0,0,.16); }
+.thumb-wrap { position: relative; }
+.card img { width: 100%; height: 120px; object-fit: cover; display: block; background: #eee; }
+.dup-badge { position: absolute; top: 6px; right: 6px; background: #d32f2f; color: white; font-size: 12px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+.card-info { padding: 10px 12px; }
+.card-page { font-size: 12px; color: #666; margin-bottom: 4px; }
+.card-pattern { font-weight: bold; font-size: 14px; word-break: break-all; }
+.context-menu { position: fixed; background: white; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 6px 20px rgba(0,0,0,.18); padding: 4px 0; z-index: 1000; max-height: 82vh; overflow-y: auto; display: none; min-width: 300px; }
+.menu-top { position: sticky; top: 0; background: white; padding: 6px 12px; font-size: 12px; color: #888; border-bottom: 1px solid #eee; display: flex; align-items: center; justify-content: space-between; }
+.menu-back { cursor: pointer; color: #007bff; font-weight: 600; }
+.menu-group-title { padding: 6px 12px; font-size: 12px; color: #888; font-weight: 700; background: #fafafa; border-bottom: 1px solid #eee; }
+.menu-item { padding: 8px 12px; cursor: pointer; display: flex; align-items: center; }
+.menu-item:hover { background: #f0f4ff; }
+.menu-item.current { background: #e3f2fd; }
+.menu-item.incompatible { opacity: .62; }
+.menu-item img { width: 44px; height: 44px; object-fit: cover; margin-right: 12px; border-radius: 4px; background: #f3f4f6; flex: none; }
+.menu-item-content { flex: 1; min-width: 0; }
+.menu-item-name { font-weight: bold; font-size: 13px; }
+.menu-item-desc { font-size: 12px; color: #666; margin-top: 1px; }
+.menu-item-compat { font-size: 11px; margin-top: 3px; }
+.compat-ok { color: #2e7d32; }
+.compat-warn { color: #b26a00; }
+.compat-bad { color: #d32f2f; }
+.menu-separator { border-top: 1px solid #eee; margin: 4px 0; }
+.menu-expander { padding: 8px 12px; font-style: italic; color: #666; cursor: pointer; }
+.menu-expander:hover { background: #f0f4ff; }
+.hidden { display: none; }
+.toast { position: fixed; left: 50%; bottom: 32px; transform: translateX(-50%); background: rgba(0,0,0,.82); color: white; padding: 10px 20px; border-radius: 20px; font-size: 14px; z-index: 2000; opacity: 0; transition: opacity .25s; pointer-events: none; }
+.modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 1500; display: none; align-items: center; justify-content: center; }
+.modal { background: white; border-radius: 8px; max-width: 640px; width: 90%; max-height: 78vh; overflow-y: auto; padding: 20px; }
+.modal h3 { margin-top: 0; }
+.modal ul { margin: 8px 0 0; padding-left: 20px; }
+.modal .warn-item { color: #b26a00; }
+.modal .bad-item { color: #d32f2f; }
+.modal-actions { margin-top: 16px; text-align: right; }
+.modal button { margin-left: 8px; padding: 6px 14px; border-radius: 4px; cursor: pointer; border: 1px solid #ccc; background: white; }
+.modal button.primary { background: #007bff; color: white; border-color: #007bff; }
+</style>
 </head>
 <body>
-    <div class="toolbar">
-        <h1>人工智能大模型发展历史研究</h1>
-        <div class="stats">共 21 页</div>
-        <button onclick="exportStoryboard()">导出 storyboard.json</button>
-    </div>
-    <div class="grid" id="grid">
-        <div class="card" data-page="1" data-pattern="cover" oncontextmenu="showMenu(event, 1)">
-            <img src="deck_thumbs/slide001.png" alt="第1页" onerror="this.style.opacity=0.3; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=='">
-            <div class="card-info">
-                <div class="card-page">第 1 页</div>
-                <div class="card-pattern">cover</div>
-            </div>
-        </div>
-        <div class="card" data-page="2" data-pattern="toc" oncontextmenu="showMenu(event, 2)">
-            <img src="deck_thumbs/slide002.png" alt="第2页" onerror="this.style.opacity=0.3; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=='">
-            <div class="card-info">
-                <div class="card-page">第 2 页</div>
-                <div class="card-pattern">toc</div>
-            </div>
-        </div>
-        <div class="card" data-page="3" data-pattern="section" oncontextmenu="showMenu(event, 3)">
-            <img src="deck_thumbs/slide003.png" alt="第3页" onerror="this.style.opacity=0.3; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=='">
-            <div class="card-info">
-                <div class="card-page">第 3 页</div>
-                <div class="card-pattern">section</div>
-            </div>
-        </div>
-        <div class="card" data-page="4" data-pattern="text-3" oncontextmenu="showMenu(event, 4)">
-            <img src="deck_thumbs/slide004.png" alt="第4页" onerror="this.style.opacity=0.3; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=='">
-            <div class="card-info">
-                <div class="card-page">第 4 页</div>
-                <div class="card-pattern">text-3</div>
-            </div>
-        </div>
-        <div class="card" data-page="5" data-pattern="section" oncontextmenu="showMenu(event, 5)">
-            <img src="deck_thumbs/slide005.png" alt="第5页" onerror="this.style.opacity=0.3; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=='">
-            <div class="card-info">
-                <div class="card-page">第 5 页</div>
-                <div class="card-pattern">section</div>
-            </div>
-        </div>
-        <div class="card" data-page="6" data-pattern="timeline-4" oncontextmenu="showMenu(event, 6)">
-            <img src="deck_thumbs/slide006.png" alt="第6页" onerror="this.style.opacity=0.3; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=='">
-            <div class="card-info">
-                <div class="card-page">第 6 页</div>
-                <div class="card-pattern">timeline-4</div>
-            </div>
-        </div>
-        <div class="card" data-page="7" data-pattern="section" oncontextmenu="showMenu(event, 7)">
-            <img src="deck_thumbs/slide007.png" alt="第7页" onerror="this.style.opacity=0.3; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=='">
-            <div class="card-info">
-                <div class="card-page">第 7 页</div>
-                <div class="card-pattern">section</div>
-            </div>
-        </div>
-        <div class="card" data-page="8" data-pattern="text-3" oncontextmenu="showMenu(event, 8)">
-            <img src="deck_thumbs/slide008.png" alt="第8页" onerror="this.style.opacity=0.3; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=='">
-            <div class="card-info">
-                <div class="card-page">第 8 页</div>
-                <div class="card-pattern">text-3</div>
-            </div>
-        </div>
-        <div class="card" data-page="9" data-pattern="section" oncontextmenu="showMenu(event, 9)">
-            <img src="deck_thumbs/slide009.png" alt="第9页" onerror="this.style.opacity=0.3; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=='">
-            <div class="card-info">
-                <div class="card-page">第 9 页</div>
-                <div class="card-pattern">section</div>
-            </div>
-        </div>
-        <div class="card" data-page="10" data-pattern="text-4" oncontextmenu="showMenu(event, 10)">
-            <img src="deck_thumbs/slide010.png" alt="第10页" onerror="this.style.opacity=0.3; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=='">
-            <div class="card-info">
-                <div class="card-page">第 10 页</div>
-                <div class="card-pattern">text-4</div>
-            </div>
-        </div>
-        <div class="card" data-page="11" data-pattern="section" oncontextmenu="showMenu(event, 11)">
-            <img src="deck_thumbs/slide011.png" alt="第11页" onerror="this.style.opacity=0.3; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=='">
-            <div class="card-info">
-                <div class="card-page">第 11 页</div>
-                <div class="card-pattern">section</div>
-            </div>
-        </div>
-        <div class="card" data-page="12" data-pattern="text-3" oncontextmenu="showMenu(event, 12)">
-            <img src="deck_thumbs/slide012.png" alt="第12页" onerror="this.style.opacity=0.3; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=='">
-            <div class="card-info">
-                <div class="card-page">第 12 页</div>
-                <div class="card-pattern">text-3</div>
-            </div>
-        </div>
-        <div class="card" data-page="13" data-pattern="section" oncontextmenu="showMenu(event, 13)">
-            <img src="deck_thumbs/slide013.png" alt="第13页" onerror="this.style.opacity=0.3; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=='">
-            <div class="card-info">
-                <div class="card-page">第 13 页</div>
-                <div class="card-pattern">section</div>
-            </div>
-        </div>
-        <div class="card" data-page="14" data-pattern="text-3" oncontextmenu="showMenu(event, 14)">
-            <img src="deck_thumbs/slide014.png" alt="第14页" onerror="this.style.opacity=0.3; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=='">
-            <div class="card-info">
-                <div class="card-page">第 14 页</div>
-                <div class="card-pattern">text-3</div>
-            </div>
-        </div>
-        <div class="card" data-page="15" data-pattern="section" oncontextmenu="showMenu(event, 15)">
-            <img src="deck_thumbs/slide015.png" alt="第15页" onerror="this.style.opacity=0.3; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=='">
-            <div class="card-info">
-                <div class="card-page">第 15 页</div>
-                <div class="card-pattern">section</div>
-            </div>
-        </div>
-        <div class="card" data-page="16" data-pattern="text-3" oncontextmenu="showMenu(event, 16)">
-            <img src="deck_thumbs/slide016.png" alt="第16页" onerror="this.style.opacity=0.3; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=='">
-            <div class="card-info">
-                <div class="card-page">第 16 页</div>
-                <div class="card-pattern">text-3</div>
-            </div>
-        </div>
-        <div class="card" data-page="17" data-pattern="text-4" oncontextmenu="showMenu(event, 17)">
-            <img src="deck_thumbs/slide017.png" alt="第17页" onerror="this.style.opacity=0.3; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=='">
-            <div class="card-info">
-                <div class="card-page">第 17 页</div>
-                <div class="card-pattern">text-4</div>
-            </div>
-        </div>
-        <div class="card" data-page="18" data-pattern="section" oncontextmenu="showMenu(event, 18)">
-            <img src="deck_thumbs/slide018.png" alt="第18页" onerror="this.style.opacity=0.3; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=='">
-            <div class="card-info">
-                <div class="card-page">第 18 页</div>
-                <div class="card-pattern">section</div>
-            </div>
-        </div>
-        <div class="card" data-page="19" data-pattern="text-quote" oncontextmenu="showMenu(event, 19)">
-            <img src="deck_thumbs/slide019.png" alt="第19页" onerror="this.style.opacity=0.3; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=='">
-            <div class="card-info">
-                <div class="card-page">第 19 页</div>
-                <div class="card-pattern">text-quote</div>
-            </div>
-        </div>
-        <div class="card" data-page="20" data-pattern="refs" oncontextmenu="showMenu(event, 20)">
-            <img src="deck_thumbs/slide020.png" alt="第20页" onerror="this.style.opacity=0.3; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=='">
-            <div class="card-info">
-                <div class="card-page">第 20 页</div>
-                <div class="card-pattern">refs</div>
-            </div>
-        </div>
-        <div class="card" data-page="21" data-pattern="thanks" oncontextmenu="showMenu(event, 21)">
-            <img src="deck_thumbs/slide021.png" alt="第21页" onerror="this.style.opacity=0.3; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=='">
-            <div class="card-info">
-                <div class="card-page">第 21 页</div>
-                <div class="card-pattern">thanks</div>
-            </div>
-        </div>
-    </div>
+<div class="toolbar">
+    <h1>人工智能大模型发展历史研究</h1>
+    <div class="stats" id="stats"></div>
+    <button onclick="exportStoryboard()">导出 storyboard.json</button>
+</div>
+<div class="grid" id="grid">
+<div class="card" data-page="1" data-pattern="cover" oncontextmenu="openMenu(event,1);return false;" onclick="openMenu(event,1)"><div class="thumb-wrap"><img src="deck_thumbs/slide001.png" alt="第1页" onerror="imgFail(this)"></div><div class="card-info"><div class="card-page">第 1 页</div><div class="card-pattern">cover</div></div></div>
+<div class="card" data-page="2" data-pattern="toc" oncontextmenu="openMenu(event,2);return false;" onclick="openMenu(event,2)"><div class="thumb-wrap"><img src="deck_thumbs/slide002.png" alt="第2页" onerror="imgFail(this)"></div><div class="card-info"><div class="card-page">第 2 页</div><div class="card-pattern">toc</div></div></div>
+<div class="card" data-page="3" data-pattern="section" oncontextmenu="openMenu(event,3);return false;" onclick="openMenu(event,3)"><div class="thumb-wrap"><img src="deck_thumbs/slide003.png" alt="第3页" onerror="imgFail(this)"></div><div class="card-info"><div class="card-page">第 3 页</div><div class="card-pattern">section</div></div></div>
+<div class="card" data-page="4" data-pattern="text-3" oncontextmenu="openMenu(event,4);return false;" onclick="openMenu(event,4)"><div class="thumb-wrap"><img src="deck_thumbs/slide004.png" alt="第4页" onerror="imgFail(this)"><span class="dup-badge">×3</span></div><div class="card-info"><div class="card-page">第 4 页</div><div class="card-pattern">text-3</div></div></div>
+<div class="card" data-page="5" data-pattern="timeline-4" oncontextmenu="openMenu(event,5);return false;" onclick="openMenu(event,5)"><div class="thumb-wrap"><img src="deck_thumbs/slide005.png" alt="第5页" onerror="imgFail(this)"></div><div class="card-info"><div class="card-page">第 5 页</div><div class="card-pattern">timeline-4</div></div></div>
+<div class="card" data-page="6" data-pattern="section" oncontextmenu="openMenu(event,6);return false;" onclick="openMenu(event,6)"><div class="thumb-wrap"><img src="deck_thumbs/slide006.png" alt="第6页" onerror="imgFail(this)"></div><div class="card-info"><div class="card-page">第 6 页</div><div class="card-pattern">section</div></div></div>
+<div class="card" data-page="7" data-pattern="steps-3" oncontextmenu="openMenu(event,7);return false;" onclick="openMenu(event,7)"><div class="thumb-wrap"><img src="deck_thumbs/slide007.png" alt="第7页" onerror="imgFail(this)"><span class="dup-badge">×2</span></div><div class="card-info"><div class="card-page">第 7 页</div><div class="card-pattern">steps-3</div></div></div>
+<div class="card" data-page="8" data-pattern="mockup-3" oncontextmenu="openMenu(event,8);return false;" onclick="openMenu(event,8)"><div class="thumb-wrap"><img src="deck_thumbs/slide008.png" alt="第8页" onerror="imgFail(this)"></div><div class="card-info"><div class="card-page">第 8 页</div><div class="card-pattern">mockup-3</div></div></div>
+<div class="card" data-page="9" data-pattern="section" oncontextmenu="openMenu(event,9);return false;" onclick="openMenu(event,9)"><div class="thumb-wrap"><img src="deck_thumbs/slide009.png" alt="第9页" onerror="imgFail(this)"></div><div class="card-info"><div class="card-page">第 9 页</div><div class="card-pattern">section</div></div></div>
+<div class="card" data-page="10" data-pattern="text-3" oncontextmenu="openMenu(event,10);return false;" onclick="openMenu(event,10)"><div class="thumb-wrap"><img src="deck_thumbs/slide010.png" alt="第10页" onerror="imgFail(this)"><span class="dup-badge">×3</span></div><div class="card-info"><div class="card-page">第 10 页</div><div class="card-pattern">text-3</div></div></div>
+<div class="card" data-page="11" data-pattern="imgtext-3" oncontextmenu="openMenu(event,11);return false;" onclick="openMenu(event,11)"><div class="thumb-wrap"><img src="deck_thumbs/slide011.png" alt="第11页" onerror="imgFail(this)"></div><div class="card-info"><div class="card-page">第 11 页</div><div class="card-pattern">imgtext-3</div></div></div>
+<div class="card" data-page="12" data-pattern="chart-line" oncontextmenu="openMenu(event,12);return false;" onclick="openMenu(event,12)"><div class="thumb-wrap"><img src="deck_thumbs/slide012.png" alt="第12页" onerror="imgFail(this)"></div><div class="card-info"><div class="card-page">第 12 页</div><div class="card-pattern">chart-line</div></div></div>
+<div class="card" data-page="13" data-pattern="section" oncontextmenu="openMenu(event,13);return false;" onclick="openMenu(event,13)"><div class="thumb-wrap"><img src="deck_thumbs/slide013.png" alt="第13页" onerror="imgFail(this)"></div><div class="card-info"><div class="card-page">第 13 页</div><div class="card-pattern">section</div></div></div>
+<div class="card" data-page="14" data-pattern="compare-2" oncontextmenu="openMenu(event,14);return false;" onclick="openMenu(event,14)"><div class="thumb-wrap"><img src="deck_thumbs/slide014.png" alt="第14页" onerror="imgFail(this)"></div><div class="card-info"><div class="card-page">第 14 页</div><div class="card-pattern">compare-2</div></div></div>
+<div class="card" data-page="15" data-pattern="steps-3" oncontextmenu="openMenu(event,15);return false;" onclick="openMenu(event,15)"><div class="thumb-wrap"><img src="deck_thumbs/slide015.png" alt="第15页" onerror="imgFail(this)"><span class="dup-badge">×2</span></div><div class="card-info"><div class="card-page">第 15 页</div><div class="card-pattern">steps-3</div></div></div>
+<div class="card" data-page="16" data-pattern="section" oncontextmenu="openMenu(event,16);return false;" onclick="openMenu(event,16)"><div class="thumb-wrap"><img src="deck_thumbs/slide016.png" alt="第16页" onerror="imgFail(this)"></div><div class="card-info"><div class="card-page">第 16 页</div><div class="card-pattern">section</div></div></div>
+<div class="card" data-page="17" data-pattern="text-3" oncontextmenu="openMenu(event,17);return false;" onclick="openMenu(event,17)"><div class="thumb-wrap"><img src="deck_thumbs/slide017.png" alt="第17页" onerror="imgFail(this)"><span class="dup-badge">×3</span></div><div class="card-info"><div class="card-page">第 17 页</div><div class="card-pattern">text-3</div></div></div>
+<div class="card" data-page="18" data-pattern="text-4icon" oncontextmenu="openMenu(event,18);return false;" onclick="openMenu(event,18)"><div class="thumb-wrap"><img src="deck_thumbs/slide018.png" alt="第18页" onerror="imgFail(this)"></div><div class="card-info"><div class="card-page">第 18 页</div><div class="card-pattern">text-4icon</div></div></div>
+<div class="card" data-page="19" data-pattern="imgtext-2pair" oncontextmenu="openMenu(event,19);return false;" onclick="openMenu(event,19)"><div class="thumb-wrap"><img src="deck_thumbs/slide019.png" alt="第19页" onerror="imgFail(this)"></div><div class="card-info"><div class="card-page">第 19 页</div><div class="card-pattern">imgtext-2pair</div></div></div>
+<div class="card" data-page="20" data-pattern="thanks" oncontextmenu="openMenu(event,20);return false;" onclick="openMenu(event,20)"><div class="thumb-wrap"><img src="deck_thumbs/slide020.png" alt="第20页" onerror="imgFail(this)"></div><div class="card-info"><div class="card-page">第 20 页</div><div class="card-pattern">thanks</div></div></div>
+</div>
+<div class="context-menu" id="contextMenu"></div>
+<div class="toast" id="toast"></div>
+<div class="modal-mask" id="modalMask" onclick="if(event.target===this)closeModal()">
+    <div class="modal" id="modalBody"></div>
+</div>
+<script>
+const FALLBACK = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNGM0Y0RjYiLz48L3N2Zz4=';
+const storyboard = {"title": "人工智能大模型发展历史研究", "pages": [{"pattern": "cover", "fields": {"title": "人工智能大模型发展历史研究", "en": "A Historical Study of Large AI Models", "advisor": "指导老师：XXX", "presenter": "答辩人：XXX"}, "notes": "各位老师好，我汇报的题目是《人工智能大模型发展历史研究》。本文以历史演进为线索，梳理大模型八十年的发展脉络，回答它从哪里来、因何而成、向何处去。"}, {"pattern": "toc", "fields": {"t1": "萌芽与积淀", "e1": "Origins", "t2": "深度学习革命", "e2": "Deep Learning", "t3": "预训练时代", "e3": "Pretraining", "t4": "生成式AI时代", "e4": "Generative AI", "t5": "规律与挑战", "e5": "Laws & Risks"}, "notes": "汇报分为五个部分：先回溯 1943 年以来的萌芽与积淀，再看深度学习革命与预训练时代，接着分析生成式 AI 的破圈，最后总结演进规律与现实挑战。"}, {"pattern": "section", "fields": {"num": "01", "title": "萌芽与积淀", "en": "Origins (1943—2005)", "desc": "连接主义的确立与两次 AI 寒冬"}, "notes": "第一部分回到起点。1943 至 2005 年，人工智能在理论奠基与寒冬往复中前行，确立了从数据中学习的连接主义路线，为日后爆发埋下伏笔。"}, {"pattern": "text-3", "fields": {"title": "大模型并非突变", "s1": "公众惊叹", "b1": "ChatGPT 两月破亿引惊叹，公众误认 AI 突降，实为长期积累。", "s2": "技术史实", "b2": "从技术史看，大模型是算力数据算法六十年协同积累的必然。", "s3": "研究分期", "b3": "本文划为四阶段梳理演进逻辑，提供可参照的历史坐标。"}, "notes": "核心洞察——大模型是三次浪潮叠加的必然产物，而非突变。引言旨在澄清公众认知偏差，确立全文历史脉络的分析框架，帮助听众把握技术规律。"}, {"pattern": "timeline-4", "fields": {"title": "萌芽与积淀（1943—2005）", "d1": "1943", "s1": "神经元模型", "b1": "McCulloch 与 Pitts 提出神经元模型，奠定连接主义基础。", "d2": "1956", "s2": "学科确立", "b2": "达特茅斯会议正式命名人工智能，连接主义路线获认可。", "d3": "1958", "s3": "感知机热潮", "b3": "Rosenblatt 感知机掀首波热潮，1969 寒冬因异或瓶颈降临。", "d4": "1986", "s4": "反向传播", "b4": "反向传播突破单层瓶颈，专家系统落地后再因成本低谷。"}, "notes": "核心洞察——浪潮与寒冬交替是 AI 独有的历史节奏。此期确立从数据学习的路线，每次低谷都在积蓄下一轮爆发的理论与人才。"}, {"pattern": "section", "fields": {"num": "02", "title": "深度学习革命", "en": "Deep Learning (2006—2016)", "desc": "数据、算力与算法的初步共振"}, "notes": "第二部分进入深度学习革命。2006 至 2016 年，深层网络在数据与算力加持下重新点燃，AlexNet 成为标志性起点。"}, {"pattern": "steps-3", "fields": {"title": "深度学习革命", "s1": "逐层预训练", "b1": "2006 年 Hinton 逐层预训练深层网络，重燃深度网络研究。", "s2": "数据燃料", "b2": "2009 年 ImageNet 发布，为视觉模型提供统一燃料与标尺。", "s3": "技术外溢", "b3": "word2vec、GAN 与深度强化学习提出，深度学习超越传统。"}, "notes": "核心洞察——深度学习崛起是基础设施成熟后的必然。数据、算法、算力三者缺一不可，技术外溢至视觉语音翻译多领域。"}, {"pattern": "mockup-3", "fields": {"title": "深度学习的起点", "s1": "竞赛拐点", "b1": "2012 年 AlexNet 凭 GPU 训练 ImageNet 领先。", "s2": "算力结合", "b2": "GPU 并行训练验证算力与算法乘数效应，标志革命起点。", "s3": "范式确立", "b3": "此后技术快速外溢，2016 年深度学习在感知任务全面超越。"}, "notes": "核心洞察——AlexNet 的价值不在单篇论文，而在证明数据、算力、算法共振可引爆范式转移，开启深度学习十年繁荣。 配图建议：AlexNet 网络架构图 或 ImageNet 竞赛准确率对比图"}, {"pattern": "section", "fields": {"num": "03", "title": "预训练时代", "en": "Pretraining (2017—2021)", "desc": "架构基点与规模定律"}, "notes": "第三部分来到预训练时代。Transformer 与规模扩展定律让模型首次具备可扩展的统一架构与可预测的能力增长。"}, {"pattern": "text-3", "fields": {"title": "架构基点 Transformer", "s1": "自注意力", "b1": "2017 年 Transformer 以自注意力取代循环，支持并行训练。", "s2": "架构解耦", "b2": "序列依赖被打破后模型规模不再受限，训练效率大幅提升。", "s3": "时代基点", "b3": "它成大模型架构基点，BERT 与 GPT 均在其上构建路线。"}, "notes": "核心洞察——Transformer 是大模型时代的地基。它用架构创新换取并行上限，使后续所有规模化训练成为可能。"}, {"pattern": "imgtext-3", "fields": {"title": "规模扩展定律", "s1": "能力涌现", "b1": "2020 年 GPT-3 涌现少样本学习，无需微调即完成新任务。", "s2": "幂律可测", "b2": "Scaling Laws 将性能与参数算力刻为幂律，规模成纲领。", "s3": "配比修正", "b3": "2022 年 Chinchilla 修正配比，行业从堆参数转向重数据。"}, "notes": "核心洞察——规模即范式。Scaling Laws 让大力出奇迹从经验变为可计算纲领，临界点后的涌现改写能力边界。 配图建议：Scaling Laws 性能曲线、GPT 系列参数规模增长图、训练成本曲线"}, {"pattern": "chart-line", "fields": {"title": "参数量数量级跃迁", "caption": "8 年增长约 2900 倍：从 AlexNet 6 千万参数到 GPT-3 1750 亿，规模跨过临界点后能力涌现。"}, "chart": {"categories": ["AlexNet 2012", "GPT-2 2019", "GPT-3 2020"], "series": {"参数量（亿）": [0.6, 15.0, 1750.0]}}, "notes": "这一页用真实数据展示规模跃迁。AlexNet 6000 万参数是深度学习革命起点；GPT-2 达 15 亿；GPT-3 1750 亿，8 年间增长近三千倍。规模跨过临界点后，少样本学习能力涌现——这正是下一节要展开的 Scaling Laws。配图建议：无，原生图表已带数据，可在 PowerPoint 中右键编辑。"}, {"pattern": "section", "fields": {"num": "04", "title": "生成式AI时代", "en": "Generative AI (2022—至今)", "desc": "对齐技术与产业破圈"}, "notes": "第四部分聚焦生成式 AI。RLHF 让模型学会服从指令，ChatGPT 将能力推向大众，产业沿三条主线演进。"}, {"pattern": "compare-2", "fields": {"title": "对齐与破圈", "mid": "文本生成", "l_top": "预训练模型", "l_mid": "概率续写", "l_bot": "只预测下一个词，不服从指令，能力强大却难直接用。", "r_top": "对齐模型", "r_mid": "指令服从", "r_bot": "RLHF 让 13 亿参数模型偏好超越 GPT-3，成为助手。"}, "notes": "核心洞察——突破不在参数而在对齐。RLHF 把续写机器训成听话助手，ChatGPT 由此破圈走向大众。"}, {"pattern": "steps-3", "fields": {"title": "产业演进主线", "s1": "多模态", "b1": "GPT-4 统一处理文本图像音频，打破模态孤岛提升感知。", "s2": "开源崛起", "b2": "LLaMA 与 DeepSeek 缩小差距，MoE 降本推动大模型普惠。", "s3": "智能体", "b3": "思维链与 Agent 让模型从会说走向会做，中国形成特色。"}, "notes": "核心洞察——2023 年呈现多模态、开源、智能体三主线。能力从生成文本扩展为执行任务，AI 迈向通用代理。"}, {"pattern": "section", "fields": {"num": "05", "title": "规律与挑战", "en": "Laws & Risks", "desc": "演进逻辑与四重约束"}, "notes": "最后一部分做冷思考。提炼八十年三大演进规律，直面成本幻觉安全治理四重现实挑战。"}, {"pattern": "text-3", "fields": {"title": "技术演进规律", "s1": "范式递进", "b1": "符号到统计到深度学习到预训练，每次跃迁降特征工程依赖。", "s2": "三要素共振", "b2": "历次浪潮由算力数据与算法同步突破触发，单要素难引爆。", "s3": "规模即范式", "b3": "扩展定律使性能可预测，规模升格为新的生产力范式要素。"}, "notes": "核心洞察——八十年可提炼三条规律。范式递进、要素共振、规模即范式，共同解释大模型为何在此刻爆发。"}, {"pattern": "text-4icon", "fields": {"title": "现实四重挑战", "s1": "成本高企", "b1": "头部模型训练耗资数千万美元，推理能耗攀升，门槛碳排加大。", "s2": "幻觉难除", "b2": "生成内容事实性错误难根除，制约医疗法律等高风险落地。", "s3": "安全隐患", "b3": "对齐可解释与滥用防御仍缺系统解法，模型行为存风险敞口。", "s4": "治理滞后", "b4": "各国监管框架慢于技术迭代，算力数据垄断加剧技术鸿沟。"}, "notes": "核心洞察——大模型并非万能。成本、幻觉、安全、治理四重约束，决定其落地节奏与可及边界。"}, {"pattern": "imgtext-2pair", "fields": {"title": "结论与展望", "s1": "历史必然", "b1": "大模型是算力数据算法六十年协同积累的必然，须重基础创新。", "s2": "未来焦点", "b2": "多模态统一、推理强化与智能体自主化成焦点，AI 渐成基建。", "kw1": "历史必然", "kw2": "未来焦点"}, "notes": "核心洞察——大模型从工具演变为基础设施。回望历史是为前瞻：下一阶段竞争在模态、推理与自主化。 配图建议：AI 技术演进路线图 与 未来趋势示意图"}, {"pattern": "thanks", "fields": {"main": "感谢聆听", "org": "毕业论文答辩", "sub": "敬请各位老师批评指正", "presenter": "答辩人：XXX"}, "notes": "我的汇报到此结束，感谢各位老师聆听。接下来是问答环节，恳请各位老师批评指正。"}]};
+const intentGroups = {"cover": {"desc": "封面：论文标题 + 英文副标题 + 指导老师/答辩人", "items": [{"name": "cover", "desc": "封面：论文标题 + 英文副标题 + 指导老师/答辩人", "tpl_img": "tpl_thumbs/tpl_001.png"}]}, "toc": {"desc": "目录：多章节编号列表", "items": [{"name": "toc", "desc": "目录：6 个章节（编号 01-06 固定）", "tpl_img": "tpl_thumbs/tpl_002.png"}]}, "section": {"desc": "章节过渡页：编号 + 中文标题 + 英文 + 一句描述", "items": [{"name": "section", "desc": "章节过渡页：编号 + 中文标题 + 英文 + 一句描述", "tpl_img": "tpl_thumbs/tpl_003.png"}]}, "thanks": {"desc": "致谢/结束页", "items": [{"name": "thanks", "desc": "致谢/结束页", "tpl_img": "tpl_thumbs/tpl_009.png"}]}, "qa": {"desc": "问答页", "items": [{"name": "qa", "desc": "Q&A 问答页", "tpl_img": "tpl_thumbs/tpl_051.png"}]}, "refs": {"desc": "参考文献页（固定编号列表）", "items": [{"name": "refs", "desc": "参考文献（最多 6 条，编号固定 01-06）", "tpl_img": "tpl_thumbs/tpl_054.png"}]}, "quote": {"desc": "引文/核心论断段落 + 落款", "items": [{"name": "text-quote", "desc": "引文/结论段落 + 右下落款", "tpl_img": "tpl_thumbs/tpl_010.png"}]}, "para": {"desc": "小标题 + 长段正文（可带副标）", "items": [{"name": "text-frame", "desc": "小标题 + 框内长段文字", "tpl_img": "tpl_thumbs/tpl_011.png"}, {"name": "text-long", "desc": "一大段纯文字（折角卡片）", "tpl_img": "tpl_thumbs/tpl_012.png"}]}, "points-2": {"desc": "上下两段文字（各带小标题）", "items": [{"name": "text-2", "desc": "上下两段文字（各带小标题）", "tpl_img": "tpl_thumbs/tpl_013.png"}]}, "points-3": {"desc": "三列要点（小标题+正文）", "items": [{"name": "text-3", "desc": "三列卡片（小标题+正文）", "tpl_img": "tpl_thumbs/tpl_014.png"}, {"name": "steps-3", "desc": "三步骤圆形流程", "tpl_img": "tpl_thumbs/tpl_031.png"}, {"name": "mockup-3", "desc": "样机图 + 右侧三条要点", "tpl_img": "tpl_thumbs/tpl_024.png"}, {"name": "imgtext-3", "desc": "三图三文并列", "tpl_img": "tpl_thumbs/tpl_022.png"}]}, "points-4": {"desc": "四块要点（2x2）", "items": [{"name": "text-4", "desc": "2x2 四块文字", "tpl_img": "tpl_thumbs/tpl_015.png"}, {"name": "text-4icon", "desc": "2x2 四块图标+文字", "tpl_img": "tpl_thumbs/tpl_016.png"}, {"name": "imgtext-4", "desc": "四图四文并列（含关键词标签）", "tpl_img": "tpl_thumbs/tpl_023.png"}, {"name": "cycle-4", "desc": "循环图示（中心词+四向要点）", "tpl_img": "tpl_thumbs/tpl_041.png"}]}, "points-6": {"desc": "六块要点（3x2）", "items": [{"name": "text-6", "desc": "3x2 六块图标+文字", "tpl_img": "tpl_thumbs/tpl_017.png"}]}, "hero-img": {"desc": "横幅大图 + 图注标题 + 说明文字", "items": [{"name": "imgtext-wide", "desc": "横幅长图 + 图注标题 + 说明文字", "tpl_img": "tpl_thumbs/tpl_018.png"}]}, "imgtext-1v1": {"desc": "左图右文（标题+关键词）", "items": [{"name": "imgtext-1v1", "desc": "左图右文（标题+关键词）", "tpl_img": "tpl_thumbs/tpl_019.png"}]}, "imgtext-2x": {"desc": "双图 + 两段图文", "items": [{"name": "imgtext-2v2", "desc": "左双图 + 右两段图文", "tpl_img": "tpl_thumbs/tpl_020.png"}, {"name": "imgtext-2pair", "desc": "对角图文两组（交叉布局）", "tpl_img": "tpl_thumbs/tpl_021.png"}]}, "imgtext-3": {"desc": "三图三文并列", "items": [{"name": "imgtext-3", "desc": "三图三文并列", "tpl_img": "tpl_thumbs/tpl_022.png"}]}, "imgtext-4": {"desc": "四图四文并列（含关键词标签）", "items": [{"name": "imgtext-4", "desc": "四图四文并列（含关键词标签）", "tpl_img": "tpl_thumbs/tpl_023.png"}]}, "mockup": {"desc": "样机/产品图 + 右侧三条要点", "items": [{"name": "mockup-3", "desc": "样机图 + 右侧三条要点", "tpl_img": "tpl_thumbs/tpl_024.png"}]}, "person": {"desc": "单人介绍：头像 + 姓名 + 简介", "items": [{"name": "person", "desc": "人物页：头像 + 姓名 + 简介", "tpl_img": "tpl_thumbs/tpl_025.png"}]}, "person-2": {"desc": "双人/单人履历（含多项信息字段）", "items": [{"name": "person-2", "desc": "人物简历页：头像+姓名+六项信息", "tpl_img": "tpl_thumbs/tpl_026.png"}, {"name": "person-2pair", "desc": "双人物对角布局", "tpl_img": "tpl_thumbs/tpl_027.png"}]}, "person-3": {"desc": "三人物并列", "items": [{"name": "person-3", "desc": "三人物并列", "tpl_img": "tpl_thumbs/tpl_028.png"}]}, "person-4": {"desc": "四人物 2x2 阵列", "items": [{"name": "person-4", "desc": "四人物 2x2 阵列", "tpl_img": "tpl_thumbs/tpl_029.png"}]}, "person-6": {"desc": "六人物阵列", "items": [{"name": "person-6", "desc": "六人物阵列", "tpl_img": "tpl_thumbs/tpl_030.png"}]}, "steps-3": {"desc": "三步骤流程（圆形/编号）", "items": [{"name": "steps-3", "desc": "三步骤圆形流程", "tpl_img": "tpl_thumbs/tpl_031.png"}]}, "process-5": {"desc": "五节点横向进程图", "items": [{"name": "process-5", "desc": "五节点横向进程图", "tpl_img": "tpl_thumbs/tpl_032.png"}]}, "timeline-4": {"desc": "四节点时间轴（年份+小标题+说明）", "items": [{"name": "timeline-4", "desc": "四节点时间轴（年份+小标题+说明）", "tpl_img": "tpl_thumbs/tpl_033.png"}, {"name": "timeline2-5", "desc": "创意时间轴（5 节点，时间+说明）", "tpl_img": "tpl_thumbs/tpl_034.png"}]}, "timeline-5": {"desc": "五节点创意时间轴", "items": [{"name": "timeline2-5", "desc": "创意时间轴（5 节点，时间+说明）", "tpl_img": "tpl_thumbs/tpl_034.png"}]}, "swot": {"desc": "SWOT 分析（S/W/O/T 四象限）", "items": [{"name": "swot", "desc": "SWOT 分析（S/W/O/T 四象限）", "tpl_img": "tpl_thumbs/tpl_035.png"}, {"name": "swot2", "desc": "SWOT 分析-02（菱形版）", "tpl_img": "tpl_thumbs/tpl_036.png"}]}, "compare-2": {"desc": "左右优劣对比（各三点）", "items": [{"name": "compare-2", "desc": "左右优劣对比（各三点）", "tpl_img": "tpl_thumbs/tpl_037.png"}]}, "two-views": {"desc": "两派观点对照（各三点）", "items": [{"name": "two-views", "desc": "两派观点对照（各三点）", "tpl_img": "tpl_thumbs/tpl_039.png"}]}, "six-views": {"desc": "中心结论 + 六个观点", "items": [{"name": "six-views", "desc": "中心结论 + 六个观点", "tpl_img": "tpl_thumbs/tpl_040.png"}]}, "table": {"desc": "数据表格 + 标题 + 结论注释", "items": [{"name": "table", "desc": "数据表格 + 标题 + 结论注释（支持 table 数据）", "tpl_img": "tpl_thumbs/tpl_042.png"}]}, "chart-pie": {"desc": "饼图 + 四角说明", "items": [{"name": "chart-pie", "desc": "饼图 + 四角说明（支持 chart 数据）", "tpl_img": "tpl_thumbs/tpl_043.png"}]}, "chart-line": {"desc": "折线/曲线图 + 结论文字", "items": [{"name": "chart-line", "desc": "折线图 + 结论文字（支持 chart 数据）", "tpl_img": "tpl_thumbs/tpl_046.png"}, {"name": "chart-line-2", "desc": "平滑曲线图 + 右侧两条说明", "tpl_img": "tpl_thumbs/tpl_045.png"}]}, "chart-bar": {"desc": "柱/条形图 + 结论文字", "items": [{"name": "chart-bar", "desc": "簇状条形图 + 结论文字（支持 chart 数据）", "tpl_img": "tpl_thumbs/tpl_048.png"}, {"name": "chart-bar-3", "desc": "簇状柱形图 + 左侧三条说明", "tpl_img": "tpl_thumbs/tpl_044.png"}, {"name": "chart-bar-2", "desc": "簇状条形图 + 右侧两条说明", "tpl_img": "tpl_thumbs/tpl_049.png"}, {"name": "chart-bar-stacked", "desc": "百分比堆积条形图 + 结论", "tpl_img": "tpl_thumbs/tpl_050.png"}]}, "chart-donut": {"desc": "多圆环百分比", "items": [{"name": "chart-donut3", "desc": "三圆环百分比 + 标题 + 说明（charts.chart1~3 写入三个圆环数据）", "tpl_img": "tpl_thumbs/tpl_047.png"}]}, "compare-data": {"desc": "双圆环数据对比", "items": [{"name": "compare-data", "desc": "双圆环数据对比（左右各一图）", "tpl_img": "tpl_thumbs/tpl_038.png"}]}, "honors-3": {"desc": "三项荣誉展示（奖杯图）", "items": [{"name": "honors-3", "desc": "荣誉展示（三奖项，奖杯图）", "tpl_img": "tpl_thumbs/tpl_052.png"}]}, "honors-6": {"desc": "六项荣誉展示（奖牌图）", "items": [{"name": "honors-6", "desc": "荣誉展示（六奖项，奖牌图）", "tpl_img": "tpl_thumbs/tpl_053.png"}]}};
+const slotSets = {"cover": {"text": ["title", "en", "advisor", "presenter"], "image": ["bg"], "chart": false, "table": false}, "toc": {"text": ["t1", "e1", "t2", "e2", "t3", "e3", "t4", "e4", "t5", "e5", "t6", "e6"], "image": [], "chart": false, "table": false}, "section": {"text": ["num", "title", "en", "desc"], "image": [], "chart": false, "table": false}, "thanks": {"text": ["main", "org", "sub", "presenter"], "image": [], "chart": false, "table": false}, "text-quote": {"text": ["title", "body", "source"], "image": [], "chart": false, "table": false}, "text-frame": {"text": ["title", "st", "body"], "image": [], "chart": false, "table": false}, "text-long": {"text": ["title", "body"], "image": [], "chart": false, "table": false}, "text-2": {"text": ["title", "s1", "b1", "s2", "b2"], "image": [], "chart": false, "table": false}, "text-3": {"text": ["title", "s1", "b1", "s2", "b2", "s3", "b3"], "image": [], "chart": false, "table": false}, "text-4": {"text": ["title", "s1", "b1", "s2", "b2", "s3", "b3", "s4", "b4"], "image": [], "chart": false, "table": false}, "text-4icon": {"text": ["title", "s1", "b1", "s2", "b2", "s3", "b3", "s4", "b4"], "image": [], "chart": false, "table": false}, "text-6": {"text": ["title", "s1", "b1", "s2", "b2", "s3", "b3", "s4", "b4", "s5", "b5", "s6", "b6"], "image": [], "chart": false, "table": false}, "imgtext-wide": {"text": ["title", "cap", "body"], "image": ["img1"], "chart": false, "table": false}, "imgtext-1v1": {"text": ["title", "st", "body", "kw"], "image": ["img1"], "chart": false, "table": false}, "imgtext-2v2": {"text": ["title", "s1", "b1", "s2", "b2", "kw1", "kw2"], "image": ["img1", "img2"], "chart": false, "table": false}, "imgtext-2pair": {"text": ["title", "s1", "b1", "s2", "b2", "kw1", "kw2"], "image": ["img1", "img2"], "chart": false, "table": false}, "imgtext-3": {"text": ["title", "s1", "b1", "s2", "b2", "s3", "b3"], "image": ["img1", "img2", "img3"], "chart": false, "table": false}, "imgtext-4": {"text": ["title", "s1", "b1", "kw1", "s2", "b2", "kw2", "s3", "b3", "kw3", "s4", "b4", "kw4"], "image": ["img1", "img2", "img3", "img4"], "chart": false, "table": false}, "mockup-3": {"text": ["title", "s1", "b1", "s2", "b2", "s3", "b3"], "image": ["img1"], "chart": false, "table": false}, "person": {"text": ["title", "name", "bio"], "image": ["img1"], "chart": false, "table": false}, "steps-3": {"text": ["title", "desc", "s1", "b1", "s2", "b2", "s3", "b3"], "image": [], "chart": false, "table": false}, "process-5": {"text": ["title", "s1", "b1", "s2", "b2", "s3", "b3", "s4", "b4", "s5", "b5"], "image": [], "chart": false, "table": false}, "timeline-4": {"text": ["title", "d1", "s1", "b1", "d2", "s2", "b2", "d3", "s3", "b3", "d4", "s4", "b4"], "image": [], "chart": false, "table": false}, "swot": {"text": ["title", "s_st", "s_b", "w_st", "w_b", "o_st", "o_b", "t_st", "t_b"], "image": [], "chart": false, "table": false}, "compare-2": {"text": ["title", "mid", "l_top", "l_mid", "l_bot", "r_top", "r_mid", "r_bot"], "image": [], "chart": false, "table": false}, "two-views": {"text": ["title", "lab1", "lab2", "l1", "l2", "l3", "r1", "r2", "r3"], "image": [], "chart": false, "table": false}, "six-views": {"text": ["title", "center", "l1", "l2", "l3", "r1", "r2", "r3"], "image": [], "chart": false, "table": false}, "table": {"text": ["title", "table_title", "caption"], "image": [], "chart": false, "table": true}, "chart-pie": {"text": ["title", "s1", "b1", "s2", "b2", "s3", "b3", "s4", "b4"], "image": [], "chart": true, "table": false}, "chart-line": {"text": ["title", "caption"], "image": [], "chart": true, "table": false}, "chart-donut3": {"text": ["title", "kw1", "pct1", "kw2", "pct2", "kw3", "pct3", "caption"], "image": [], "chart": true, "table": false}, "chart-bar": {"text": ["title", "caption"], "image": [], "chart": true, "table": false}, "refs": {"text": ["title", "ref1", "ref2", "ref3", "ref4", "ref5", "ref6"], "image": [], "chart": false, "table": false}, "qa": {"text": ["title", "main"], "image": [], "chart": false, "table": false}, "person-2": {"text": ["title", "name", "bio", "major", "edu", "skill", "work", "honor", "contact"], "image": ["img1"], "chart": false, "table": false}, "person-2pair": {"text": ["title", "name1", "bio1", "name2", "bio2"], "image": ["img1", "img2"], "chart": false, "table": false}, "person-3": {"text": ["title", "name1", "bio1", "name2", "bio2", "name3", "bio3"], "image": ["img1", "img2", "img3"], "chart": false, "table": false}, "person-4": {"text": ["title", "name1", "bio1", "name2", "bio2", "name3", "bio3", "name4", "bio4"], "image": ["img1", "img2", "img3", "img4"], "chart": false, "table": false}, "person-6": {"text": ["title", "name1", "bio1", "name2", "bio2", "name3", "bio3", "name4", "bio4", "name5", "bio5", "name6", "bio6"], "image": ["img1", "img2", "img3", "img4", "img5", "img6"], "chart": false, "table": false}, "timeline2-5": {"text": ["title", "d1", "b1", "d2", "b2", "d3", "b3", "d4", "b4", "d5", "b5"], "image": [], "chart": false, "table": false}, "swot2": {"text": ["title", "s_st", "s_b", "w_st", "w_b", "o_st", "o_b", "t_st", "t_b"], "image": [], "chart": false, "table": false}, "compare-data": {"text": ["title", "kw1", "pct1", "b1", "kw2", "pct2", "b2"], "image": [], "chart": true, "table": false}, "cycle-4": {"text": ["title", "center", "kw1", "kw2", "kw3", "kw4", "s1", "b1", "s2", "b2", "s3", "b3", "s4", "b4"], "image": [], "chart": false, "table": false}, "chart-bar-3": {"text": ["title", "s1", "b1", "s2", "b2", "s3", "b3"], "image": [], "chart": true, "table": false}, "chart-line-2": {"text": ["title", "s1", "b1", "s2", "b2"], "image": [], "chart": true, "table": false}, "chart-bar-2": {"text": ["title", "s1", "b1", "s2", "b2"], "image": [], "chart": true, "table": false}, "chart-bar-stacked": {"text": ["title", "caption"], "image": [], "chart": true, "table": false}, "honors-3": {"text": ["title", "desc", "award1", "event1", "award2", "event2", "award3", "event3"], "image": [], "chart": false, "table": false}, "honors-6": {"text": ["title", "desc", "award1", "award2", "award3", "award4", "award5", "award6"], "image": [], "chart": false, "table": false}};
+const ESC = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let currentPage = null;
+let menuMode = 'intent';
 
-    <div class="context-menu" id="contextMenu"></div>
+function imgFail(img) {
+    if (img.dataset.failed) return;
+    img.dataset.failed = '1';
+    img.style.opacity = .3;
+    img.src = FALLBACK;
+}
 
-    <script>
-        const storyboard = {"title": "人工智能大模型发展历史研究", "pages": [{"pattern": "cover", "fields": {"title": "人工智能大模型发展历史研究", "en": "History of AI Large Model Development", "advisor": "指导老师：XXX", "presenter": "答辩人：XXX"}, "notes": "各位老师好，我是XXX，我的论文题目是《人工智能大模型发展历史研究》。下面我开始答辩陈述。"}, {"pattern": "toc", "fields": {"t1": "引言与研究背景", "e1": "Introduction", "t2": "历史脉络总览", "e2": "Historical Overview", "t3": "萌芽与积淀", "e3": "Accumulation", "t4": "深度学习革命", "e4": "Deep Learning", "t5": "预训练时代", "e5": "Pre-training", "t6": "规律挑战与结论", "e6": "Patterns and Conclusion"}, "notes": "本报告共分为六个部分：首先介绍研究背景与动机，然后梳理AI大模型发展的历史脉络，接着分析演进规律与现实挑战，最后得出结论与展望。"}, {"pattern": "section", "fields": {"num": "01", "title": "引言与研究背景", "en": "Introduction", "desc": "ChatGPT掀起人工智能第三次浪潮"}, "notes": "2022年11月OpenAI发布ChatGPT，两个月用户破亿。公众惊叹于AI的突然降临，但从技术史视角看，大模型并非突变，而是三次技术浪潮层层叠加的必然产物。"}, {"pattern": "text-3", "fields": {"title": "研究动机与核心问题", "s1": "问题一", "b1": "大模型发展应如何科学分期", "s2": "问题二", "b2": "算法算力数据如何协同驱动", "s3": "问题三", "b3": "技术爆发背后有哪些历史规律"}, "notes": "本文围绕三个核心问题展开：第一，大模型发展应如何科学分期；第二，算法算力数据如何协同驱动历次浪潮；第三，技术爆发背后存在哪些可复用的历史规律。"}, {"pattern": "section", "fields": {"num": "02", "title": "历史脉络总览", "en": "Overview", "desc": "八十年技术演进的四个阶段"}, "notes": "以ChatGPT为代表的大模型掀起了人工智能发展的第三次浪潮，但其技术谱系可追溯至八十年前。本文将大模型发展划分为四个阶段来系统梳理。"}, {"pattern": "timeline-4", "fields": {"title": "AI大模型发展的四个阶段", "d1": "1943", "s1": "萌芽与积淀", "b1": "形式化神经元模型到反向传播算法", "d2": "2006", "s2": "深度学习革命", "b2": "深度信念网络与AlexNet突破", "d3": "2017", "s3": "预训练时代", "b3": "Transformer架构与BERT和GPT", "d4": "2022", "s4": "生成式AI时代", "b4": "InstructGPT与ChatGPT走向大众"}, "notes": "本文将八十年发展史划分为四个阶段：萌芽与积淀期、深度学习革命期、预训练时代和生成式AI时代。下面逐一展开各阶段的关键技术与演进逻辑。"}, {"pattern": "section", "fields": {"num": "03", "title": "萌芽与积淀", "en": "Accumulation", "desc": "1943至2005年的理论奠基"}, "notes": "第一阶段涵盖1943年至2005年，这一时期确立了连接主义路线，并留下了浪潮与寒冬交替的历史节奏，每一次低谷都为下一次爆发积蓄了理论与人才。"}, {"pattern": "text-3", "fields": {"title": "关键节点与连接主义遗产", "s1": "神经元模型", "b1": "1943年提出形式化神经元模型，奠定连接主义数学基础", "s2": "感知机热潮", "b2": "1958年感知机展示学习能力，掀起第一波AI热潮", "s3": "反向传播", "b3": "1986年反向传播算法突破单层网络表达瓶颈"}, "notes": "1943年McCulloch-Pitts提出神经元模型奠定连接主义基础。1958年感知机掀起第一波热潮后陷入寒冬。1986年反向传播算法突破单层网络瓶颈，为后续发展积蓄力量。"}, {"pattern": "section", "fields": {"num": "04", "title": "深度学习革命", "en": "Revolution", "desc": "2006至2016年的技术突破"}, "notes": "第二阶段涵盖2006年至2016年，深度信念网络重新点燃深层网络研究，ImageNet数据集提供统一燃料，AlexNet以GPU并行训练实现突破，技术快速外溢至多个领域。"}, {"pattern": "text-4", "fields": {"title": "四项关键技术突破", "s1": "2006", "b1": "Hinton提出深度信念网络逐层预训练", "s2": "2009", "b2": "ImageNet大规模数据集发布", "s3": "2012", "b3": "AlexNet以GPU并行训练大幅领先", "s4": "2013", "b4": "word2vec证明无监督词向量有效性"}, "notes": "2006年Hinton提出深度信念网络逐层预训练重新点燃研究。2009年ImageNet发布提供燃料。2012年AlexNet以GPU并行训练大幅领先。此后GAN Seq2Seq DQN相继提出，2016年深度学习在多任务上全面超越。"}, {"pattern": "section", "fields": {"num": "05", "title": "预训练时代", "en": "Pre-training", "desc": "2017至2021年的架构革命"}, "notes": "第三阶段涵盖2017年至2021年，Transformer架构摆脱循环结构使大规模并行训练成为可能，BERT和GPT验证了预训练的两条路线，规模扩展定律使性能可预测。"}, {"pattern": "text-3", "fields": {"title": "三大里程碑", "s1": "注意力架构", "b1": "2017年Transformer提出完全基于自注意力的序列模型", "s2": "预训练模型", "b2": "2018年BERT与GPT验证双向与自回归两条路线", "s3": "规模定律", "b3": "2020年Scaling Laws使性能可预测驱动行业共识"}, "notes": "2017年Transformer提出完全基于自注意力的架构，是大模型时代的架构基点。2018年BERT与GPT验证双向与自回归两条路线。2020年GPT-3证明规模跨过临界点后会涌现少样本学习能力，同年Scaling Laws使性能可预测。"}, {"pattern": "section", "fields": {"num": "06", "title": "生成式AI时代", "en": "Generative AI", "desc": "2022年至今的产业爆发"}, "notes": "第四阶段从2022年至今，预训练模型能力强大但不对齐，InstructGPT用RLHF把语言模型训练成助手，ChatGPT发布后生成式AI由此走向大众，产业呈现多模态开源生态和智能体三条主线。"}, {"pattern": "text-3", "fields": {"title": "三条发展主线", "s1": "多模态融合", "b1": "GPT-4等模型统一处理文本图像与音频", "s2": "开源生态", "b2": "LLaMA与DeepSeek等开源模型缩小闭源差距", "s3": "智能体扩展", "b3": "思维链推理与Agent让模型从会说走向会做"}, "notes": "2022年Ouyang等人提出InstructGPT用RLHF对齐语言模型，仅13亿参数即超越1750亿参数的GPT-3。同年11月ChatGPT发布走向大众。2023年以来产业呈现多模态融合开源生态崛起和智能体扩展三条主线。"}, {"pattern": "section", "fields": {"num": "07", "title": "规律分析与挑战", "en": "Patterns and Challenges", "desc": "八十年演进提炼的规律与约束"}, "notes": "纵观八十年发展，可以提炼出三条演进规律，同时也面临成本幻觉安全和治理四重现实挑战。下面分别展开分析。"}, {"pattern": "text-3", "fields": {"title": "三条演进规律", "s1": "范式递进", "b1": "符号推理到统计学习到深度学习到预训练到生成智能", "s2": "三要素共振", "b2": "算力数据算法同步突破才触发历次浪潮", "s3": "规模即范式", "b3": "规模扩展定律使规模从工程指标升格为生产力要素"}, "notes": "第一条范式递进：从符号推理到生成智能，以降低人工特征工程依赖为主线。第二条三要素共振：算力数据算法同步突破才触发浪潮。第三条规模即范式：规模扩展定律使规模升格为生产力要素，驱动超常规集聚。"}, {"pattern": "text-4", "fields": {"title": "四重现实挑战", "s1": "成本", "b1": "头部模型训练成本达数千万至上亿美元推理能耗持续攀升", "s2": "幻觉", "b2": "生成内容事实性错误难以根除制约高风险场景落地", "s3": "安全", "b3": "对齐可解释性与滥用防御仍缺乏系统解法", "s4": "治理", "b4": "各国监管框架与技术迭代速度之间存在明显时间差"}, "notes": "大模型面临四重约束：成本高昂训练达数千万美元；幻觉问题事实性错误难以根除；安全方面对齐与滥用防御缺乏系统解法；治理方面监管与技术迭代存在时间差。此外垄断化倾向可能加剧技术鸿沟。"}, {"pattern": "section", "fields": {"num": "08", "title": "结论与展望", "en": "Conclusion", "desc": "尊重历史节奏同步建设治理能力"}, "notes": "最后总结全文核心结论，并对未来发展方向进行展望。大模型的崛起不是偶然突变，而是六十年协同积累的必然产物。"}, {"pattern": "text-quote", "fields": {"title": "核心结论", "body": "大模型崛起是算力数据与算法六十年协同积累的必然产物。应尊重历史节奏，重视基础创新，同步建设治理能力。多模态与智能体是下一阶段焦点，AI正从工具演变为基础设施。", "source": "——本文核心结论"}, "notes": "以上就是我的论文主要内容。大模型的崛起是六十年协同积累的必然产物，我们应当在能力狂奔的同时同步建设治理能力。展望未来，多模态与智能体是下一阶段竞争焦点。感谢各位老师的聆听，敬请批评指正。"}, {"pattern": "refs", "fields": {"title": "参考文献", "ref1": "[1] Krizhevsky et al. ImageNet Classification. NeurIPS 2012.", "ref2": "[2] Vaswani et al. Attention Is All You Need. NeurIPS 2017.", "ref3": "[3] Devlin et al. BERT. NAACL 2019.", "ref4": "[4] Brown et al. Language Models are Few-Shot Learners. NeurIPS 2020.", "ref5": "[5] Kaplan et al. Scaling Laws for Neural Language Models. arXiv 2020.", "ref6": "[6] Ouyang et al. InstructGPT. NeurIPS 2022."}, "notes": "以上为论文引用的主要参考文献，涵盖ImageNet AlexNet Transformer BERT GPT-3规模扩展定律和InstructGPT等关键工作的原始论文。"}, {"pattern": "thanks", "fields": {"main": "感谢聆听", "org": "毕业答辩", "sub": "敬请批评指正", "presenter": "答辩人：XXX"}, "notes": "我的论文陈述到此结束，感谢各位老师的聆听与指导，敬请批评指正。"}]};
-        const intentGroups = {"cover": {"desc": "封面：论文标题 + 英文副标题 + 指导老师/答辩人", "items": [{"name": "cover", "desc": "封面：论文标题 + 英文副标题 + 指导老师/答辩人", "tpl_img": "tpl_thumbs/tpl_001.png"}]}, "toc": {"desc": "目录：多章节编号列表", "items": [{"name": "toc", "desc": "目录：6 个章节（编号 01-06 固定）", "tpl_img": "tpl_thumbs/tpl_002.png"}]}, "section": {"desc": "章节过渡页：编号 + 中文标题 + 英文 + 一句描述", "items": [{"name": "section", "desc": "章节过渡页：编号 + 中文标题 + 英文 + 一句描述", "tpl_img": "tpl_thumbs/tpl_003.png"}]}, "thanks": {"desc": "致谢/结束页", "items": [{"name": "thanks", "desc": "致谢/结束页", "tpl_img": "tpl_thumbs/tpl_009.png"}]}, "qa": {"desc": "问答页", "items": [{"name": "qa", "desc": "Q&A 问答页", "tpl_img": "tpl_thumbs/tpl_051.png"}]}, "refs": {"desc": "参考文献页（固定编号列表）", "items": [{"name": "refs", "desc": "参考文献（最多 6 条，编号固定 01-06）", "tpl_img": "tpl_thumbs/tpl_054.png"}]}, "quote": {"desc": "引文/核心论断段落 + 落款", "items": [{"name": "text-quote", "desc": "引文/结论段落 + 右下落款", "tpl_img": "tpl_thumbs/tpl_010.png"}]}, "para": {"desc": "小标题 + 长段正文（可带副标）", "items": [{"name": "text-frame", "desc": "小标题 + 框内长段文字", "tpl_img": "tpl_thumbs/tpl_011.png"}, {"name": "text-long", "desc": "一大段纯文字（折角卡片）", "tpl_img": "tpl_thumbs/tpl_012.png"}]}, "points-2": {"desc": "上下两段文字（各带小标题）", "items": [{"name": "text-2", "desc": "上下两段文字（各带小标题）", "tpl_img": "tpl_thumbs/tpl_013.png"}]}, "points-3": {"desc": "三列要点（小标题+正文）", "items": [{"name": "text-3", "desc": "三列卡片（小标题+正文）", "tpl_img": "tpl_thumbs/tpl_014.png"}, {"name": "steps-3", "desc": "三步骤圆形流程", "tpl_img": "tpl_thumbs/tpl_031.png"}, {"name": "mockup-3", "desc": "样机图 + 右侧三条要点", "tpl_img": "tpl_thumbs/tpl_024.png"}, {"name": "imgtext-3", "desc": "三图三文并列", "tpl_img": "tpl_thumbs/tpl_022.png"}]}, "points-4": {"desc": "四块要点（2x2）", "items": [{"name": "text-4", "desc": "2x2 四块文字", "tpl_img": "tpl_thumbs/tpl_015.png"}, {"name": "text-4icon", "desc": "2x2 四块图标+文字", "tpl_img": "tpl_thumbs/tpl_016.png"}, {"name": "imgtext-4", "desc": "四图四文并列（含关键词标签）", "tpl_img": "tpl_thumbs/tpl_023.png"}, {"name": "cycle-4", "desc": "循环图示（中心词+四向要点）", "tpl_img": "tpl_thumbs/tpl_041.png"}]}, "points-6": {"desc": "六块要点（3x2）", "items": [{"name": "text-6", "desc": "3x2 六块图标+文字", "tpl_img": "tpl_thumbs/tpl_017.png"}]}, "hero-img": {"desc": "横幅大图 + 图注标题 + 说明文字", "items": [{"name": "imgtext-wide", "desc": "横幅长图 + 图注标题 + 说明文字", "tpl_img": "tpl_thumbs/tpl_018.png"}]}, "imgtext-1v1": {"desc": "左图右文（标题+关键词）", "items": [{"name": "imgtext-1v1", "desc": "左图右文（标题+关键词）", "tpl_img": "tpl_thumbs/tpl_019.png"}]}, "imgtext-2x": {"desc": "双图 + 两段图文", "items": [{"name": "imgtext-2v2", "desc": "左双图 + 右两段图文", "tpl_img": "tpl_thumbs/tpl_020.png"}, {"name": "imgtext-2pair", "desc": "对角图文两组（交叉布局）", "tpl_img": "tpl_thumbs/tpl_021.png"}]}, "imgtext-3": {"desc": "三图三文并列", "items": [{"name": "imgtext-3", "desc": "三图三文并列", "tpl_img": "tpl_thumbs/tpl_022.png"}]}, "imgtext-4": {"desc": "四图四文并列（含关键词标签）", "items": [{"name": "imgtext-4", "desc": "四图四文并列（含关键词标签）", "tpl_img": "tpl_thumbs/tpl_023.png"}]}, "mockup": {"desc": "样机/产品图 + 右侧三条要点", "items": [{"name": "mockup-3", "desc": "样机图 + 右侧三条要点", "tpl_img": "tpl_thumbs/tpl_024.png"}]}, "person": {"desc": "单人介绍：头像 + 姓名 + 简介", "items": [{"name": "person", "desc": "人物页：头像 + 姓名 + 简介", "tpl_img": "tpl_thumbs/tpl_025.png"}]}, "person-2": {"desc": "双人/单人履历（含多项信息字段）", "items": [{"name": "person-2", "desc": "人物简历页：头像+姓名+六项信息", "tpl_img": "tpl_thumbs/tpl_026.png"}, {"name": "person-2pair", "desc": "双人物对角布局", "tpl_img": "tpl_thumbs/tpl_027.png"}]}, "person-3": {"desc": "三人物并列", "items": [{"name": "person-3", "desc": "三人物并列", "tpl_img": "tpl_thumbs/tpl_028.png"}]}, "person-4": {"desc": "四人物 2x2 阵列", "items": [{"name": "person-4", "desc": "四人物 2x2 阵列", "tpl_img": "tpl_thumbs/tpl_029.png"}]}, "person-6": {"desc": "六人物阵列", "items": [{"name": "person-6", "desc": "六人物阵列", "tpl_img": "tpl_thumbs/tpl_030.png"}]}, "steps-3": {"desc": "三步骤流程（圆形/编号）", "items": [{"name": "steps-3", "desc": "三步骤圆形流程", "tpl_img": "tpl_thumbs/tpl_031.png"}]}, "process-5": {"desc": "五节点横向进程图", "items": [{"name": "process-5", "desc": "五节点横向进程图", "tpl_img": "tpl_thumbs/tpl_032.png"}]}, "timeline-4": {"desc": "四节点时间轴（年份+小标题+说明）", "items": [{"name": "timeline-4", "desc": "四节点时间轴（年份+小标题+说明）", "tpl_img": "tpl_thumbs/tpl_033.png"}, {"name": "timeline2-5", "desc": "创意时间轴（5 节点，时间+说明）", "tpl_img": "tpl_thumbs/tpl_034.png"}]}, "timeline-5": {"desc": "五节点创意时间轴", "items": [{"name": "timeline2-5", "desc": "创意时间轴（5 节点，时间+说明）", "tpl_img": "tpl_thumbs/tpl_034.png"}]}, "swot": {"desc": "SWOT 分析（S/W/O/T 四象限）", "items": [{"name": "swot", "desc": "SWOT 分析（S/W/O/T 四象限）", "tpl_img": "tpl_thumbs/tpl_035.png"}, {"name": "swot2", "desc": "SWOT 分析-02（菱形版）", "tpl_img": "tpl_thumbs/tpl_036.png"}]}, "compare-2": {"desc": "左右优劣对比（各三点）", "items": [{"name": "compare-2", "desc": "左右优劣对比（各三点）", "tpl_img": "tpl_thumbs/tpl_037.png"}]}, "two-views": {"desc": "两派观点对照（各三点）", "items": [{"name": "two-views", "desc": "两派观点对照（各三点）", "tpl_img": "tpl_thumbs/tpl_039.png"}]}, "six-views": {"desc": "中心结论 + 六个观点", "items": [{"name": "six-views", "desc": "中心结论 + 六个观点", "tpl_img": "tpl_thumbs/tpl_040.png"}]}, "table": {"desc": "数据表格 + 标题 + 结论注释", "items": [{"name": "table", "desc": "数据表格 + 标题 + 结论注释（支持 table 数据）", "tpl_img": "tpl_thumbs/tpl_042.png"}]}, "chart-pie": {"desc": "饼图 + 四角说明", "items": [{"name": "chart-pie", "desc": "饼图 + 四角说明（支持 chart 数据）", "tpl_img": "tpl_thumbs/tpl_043.png"}]}, "chart-line": {"desc": "折线/曲线图 + 结论文字", "items": [{"name": "chart-line", "desc": "折线图 + 结论文字（支持 chart 数据）", "tpl_img": "tpl_thumbs/tpl_046.png"}, {"name": "chart-line-2", "desc": "平滑曲线图 + 右侧两条说明", "tpl_img": "tpl_thumbs/tpl_045.png"}]}, "chart-bar": {"desc": "柱/条形图 + 结论文字", "items": [{"name": "chart-bar", "desc": "簇状条形图 + 结论文字（支持 chart 数据）", "tpl_img": "tpl_thumbs/tpl_048.png"}, {"name": "chart-bar-3", "desc": "簇状柱形图 + 左侧三条说明", "tpl_img": "tpl_thumbs/tpl_044.png"}, {"name": "chart-bar-2", "desc": "簇状条形图 + 右侧两条说明", "tpl_img": "tpl_thumbs/tpl_049.png"}, {"name": "chart-bar-stacked", "desc": "百分比堆积条形图 + 结论", "tpl_img": "tpl_thumbs/tpl_050.png"}]}, "chart-donut": {"desc": "多圆环百分比", "items": [{"name": "chart-donut3", "desc": "三圆环百分比 + 标题 + 说明（charts.chart1~3 写入三个圆环数据）", "tpl_img": "tpl_thumbs/tpl_047.png"}]}, "compare-data": {"desc": "双圆环数据对比", "items": [{"name": "compare-data", "desc": "双圆环数据对比（左右各一图）", "tpl_img": "tpl_thumbs/tpl_038.png"}]}, "honors-3": {"desc": "三项荣誉展示（奖杯图）", "items": [{"name": "honors-3", "desc": "荣誉展示（三奖项，奖杯图）", "tpl_img": "tpl_thumbs/tpl_052.png"}]}, "honors-6": {"desc": "六项荣誉展示（奖牌图）", "items": [{"name": "honors-6", "desc": "荣誉展示（六奖项，奖牌图）", "tpl_img": "tpl_thumbs/tpl_053.png"}]}};
-        const slotSets = {"cover": ["title", "en", "advisor", "presenter"], "toc": ["t1", "e1", "t2", "e2", "t3", "e3", "t4", "e4", "t5", "e5", "t6", "e6"], "section": ["num", "title", "en", "desc"], "thanks": ["main", "org", "sub", "presenter"], "text-quote": ["title", "body", "source"], "text-frame": ["title", "st", "body"], "text-long": ["title", "body"], "text-2": ["title", "s1", "b1", "s2", "b2"], "text-3": ["title", "s1", "b1", "s2", "b2", "s3", "b3"], "text-4": ["title", "s1", "b1", "s2", "b2", "s3", "b3", "s4", "b4"], "text-4icon": ["title", "s1", "b1", "s2", "b2", "s3", "b3", "s4", "b4"], "text-6": ["title", "s1", "b1", "s2", "b2", "s3", "b3", "s4", "b4", "s5", "b5", "s6", "b6"], "imgtext-wide": ["title", "cap", "body"], "imgtext-1v1": ["title", "st", "body", "kw"], "imgtext-2v2": ["title", "s1", "b1", "s2", "b2", "kw1", "kw2"], "imgtext-2pair": ["title", "s1", "b1", "s2", "b2", "kw1", "kw2"], "imgtext-3": ["title", "s1", "b1", "s2", "b2", "s3", "b3"], "imgtext-4": ["title", "s1", "b1", "kw1", "s2", "b2", "kw2", "s3", "b3", "kw3", "s4", "b4", "kw4"], "mockup-3": ["title", "s1", "b1", "s2", "b2", "s3", "b3"], "person": ["title", "name", "bio"], "steps-3": ["title", "desc", "s1", "b1", "s2", "b2", "s3", "b3"], "process-5": ["title", "s1", "b1", "s2", "b2", "s3", "b3", "s4", "b4", "s5", "b5"], "timeline-4": ["title", "d1", "s1", "b1", "d2", "s2", "b2", "d3", "s3", "b3", "d4", "s4", "b4"], "swot": ["title", "s_st", "s_b", "w_st", "w_b", "o_st", "o_b", "t_st", "t_b"], "compare-2": ["title", "mid", "l_top", "l_mid", "l_bot", "r_top", "r_mid", "r_bot"], "two-views": ["title", "lab1", "lab2", "l1", "l2", "l3", "r1", "r2", "r3"], "six-views": ["title", "center", "l1", "l2", "l3", "r1", "r2", "r3"], "table": ["title", "table_title", "caption"], "chart-pie": ["title", "s1", "b1", "s2", "b2", "s3", "b3", "s4", "b4"], "chart-line": ["title", "caption"], "chart-donut3": ["title", "kw1", "pct1", "kw2", "pct2", "kw3", "pct3", "caption"], "chart-bar": ["title", "caption"], "refs": ["title", "ref1", "ref2", "ref3", "ref4", "ref5", "ref6"], "qa": ["title", "main"], "person-2": ["title", "name", "bio", "major", "edu", "skill", "work", "honor", "contact"], "person-2pair": ["title", "name1", "bio1", "name2", "bio2"], "person-3": ["title", "name1", "bio1", "name2", "bio2", "name3", "bio3"], "person-4": ["title", "name1", "bio1", "name2", "bio2", "name3", "bio3", "name4", "bio4"], "person-6": ["title", "name1", "bio1", "name2", "bio2", "name3", "bio3", "name4", "bio4", "name5", "bio5", "name6", "bio6"], "timeline2-5": ["title", "d1", "b1", "d2", "b2", "d3", "b3", "d4", "b4", "d5", "b5"], "swot2": ["title", "s_st", "s_b", "w_st", "w_b", "o_st", "o_b", "t_st", "t_b"], "compare-data": ["title", "kw1", "pct1", "b1", "kw2", "pct2", "b2"], "cycle-4": ["title", "center", "kw1", "kw2", "kw3", "kw4", "s1", "b1", "s2", "b2", "s3", "b3", "s4", "b4"], "chart-bar-3": ["title", "s1", "b1", "s2", "b2", "s3", "b3"], "chart-line-2": ["title", "s1", "b1", "s2", "b2"], "chart-bar-2": ["title", "s1", "b1", "s2", "b2"], "chart-bar-stacked": ["title", "caption"], "honors-3": ["title", "desc", "award1", "event1", "award2", "event2", "award3", "event3"], "honors-6": ["title", "desc", "award1", "award2", "award3", "award4", "award5", "award6"]};
-        const FALLBACK = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg==';
-        let currentPage = null;
+function findIntentForPattern(pattern) {
+    for (const intent in intentGroups) {
+        if (intentGroups[intent].items.some(it => it.name === pattern)) return intent;
+    }
+    return null;
+}
 
-        function findIntentForPattern(pattern) {
-            for (const intent in intentGroups) {
-                if (intentGroups[intent].items.some(it => it.name === pattern)) return intent;
-            }
-            return null;
+/* 兼容性三路检查：文本槽 / 图片槽 / 图表与表格需求 */
+function checkCompat(item, page) {
+    const slots = slotSets[item.name] || {text: [], image: [], chart: false, table: false};
+    const fk = Object.keys(page.fields || {});
+    const ik = Object.keys(page.images || {});
+    const missingText = fk.filter(k => slots.text.indexOf(k) < 0);
+    const missingImg = ik.filter(k => slots.image.indexOf(k) < 0);
+    const warns = [], bads = [];
+    if (missingText.length) bads.push('缺字段: ' + missingText.join(', '));
+    if (missingImg.length) bads.push('缺图片槽: ' + missingImg.join(', '));
+    if (slots.chart && !page.chart && !page.charts) warns.push('此版式需图表数据(chart)');
+    if (slots.table && !page.table) warns.push('此版式需表格数据(table)');
+    const needImg = slots.image.length && !ik.length;
+    if (needImg) warns.push('此版式有图片槽，页面未配图');
+    return {bads, warns, ok: !bads.length && !warns.length};
+}
+
+function renderGroup(intent, group, page) {
+    let h = '<div class="menu-group-title">' + ESC(intent) + ' · ' + ESC(group.desc || '') + '</div>';
+    for (const item of group.items) {
+        const c = checkCompat(item, page);
+        const cls = ['menu-item'];
+        if (item.name === page.pattern) cls.push('current');
+        else if (c.bads.length) cls.push('incompatible');
+        const compat = c.ok ? '<span class="compat-ok">✅ 兼容</span>'
+            : (c.bads.length ? '<span class="compat-bad">❌ ' + ESC(c.bads.join('; ')) + '</span>'
+                             : '<span class="compat-warn">⚠ ' + ESC(c.warns.join('; ')) + '</span>');
+        h += '<div class="' + cls.join(' ') + '" data-pat="' + ESC(item.name) + '" onclick="selectPattern(this.dataset.pat)">'
+            + '<img src="' + (item.tpl_img || FALLBACK) + '" alt="' + ESC(item.name) + '" onerror="imgFail(this)">'
+            + '<div class="menu-item-content">'
+            + '<div class="menu-item-name">' + ESC(item.name) + '</div>'
+            + '<div class="menu-item-desc">' + ESC(item.desc) + '</div>'
+            + '<div class="menu-item-compat">' + compat + '</div>'
+            + '</div></div>';
+    }
+    return h;
+}
+
+function openMenu(event, pageIdx) {
+    event.preventDefault();
+    event.stopPropagation();
+    currentPage = pageIdx;
+    menuMode = 'intent';
+    const page = storyboard.pages[pageIdx - 1];
+    const intent = page._intent || findIntentForPattern(page.pattern);
+    const menu = document.getElementById('contextMenu');
+    let html = '<div class="menu-top">第 ' + pageIdx + ' 页 · 切换版式'
+        + '<span class="menu-back" onclick="event.stopPropagation();closeMenu()">✕</span></div>';
+    if (intent && intentGroups[intent]) {
+        html += renderGroup(intent, intentGroups[intent], page);
+        html += '<div class="menu-separator"></div>';
+    }
+    html += '<div class="menu-expander" onclick="showAllIntents(event)">📋 更多版式…</div>';
+    menu.innerHTML = html;
+    positionMenu(menu, event);
+}
+
+function showAllIntents(event) {
+    event.stopPropagation();
+    menuMode = 'all';
+    const page = storyboard.pages[currentPage - 1];
+    const menu = document.getElementById('contextMenu');
+    let html = '<div class="menu-top"><span class="menu-back" onclick="event.stopPropagation();backToIntent()">← 返回</span>'
+        + '<span class="menu-back" onclick="event.stopPropagation();closeMenu()">✕</span></div>';
+    for (const intent in intentGroups) {
+        html += renderGroup(intent, intentGroups[intent], page);
+        html += '<div class="menu-separator"></div>';
+    }
+    menu.innerHTML = html;
+    positionMenu(menu, event);
+}
+
+function backToIntent() {
+    const page = storyboard.pages[currentPage - 1];
+    const intent = page._intent || findIntentForPattern(page.pattern);
+    const menu = document.getElementById('contextMenu');
+    let html = '<div class="menu-top">第 ' + currentPage + ' 页 · 切换版式'
+        + '<span class="menu-back" onclick="event.stopPropagation();closeMenu()">✕</span></div>';
+    if (intent && intentGroups[intent]) {
+        html += renderGroup(intent, intentGroups[intent], page);
+        html += '<div class="menu-separator"></div>';
+    }
+    html += '<div class="menu-expander" onclick="showAllIntents(event)">📋 更多版式…</div>';
+    menu.innerHTML = html;
+    menuMode = 'intent';
+    positionMenu(menu, {clientX: menu.style.left, clientY: menu.style.top});
+}
+
+function positionMenu(menu, event) {
+    menu.style.display = 'block';
+    const x = (typeof event.clientX === 'number') ? event.clientX : parseFloat(menu.style.left) || 0;
+    const y = (typeof event.clientY === 'number') ? event.clientY : parseFloat(menu.style.top) || 0;
+    const mw = menu.offsetWidth, mh = menu.offsetHeight;
+    let left = x, top = y;
+    if (left + mw > window.innerWidth - 8) left = Math.max(8, window.innerWidth - mw - 8);
+    if (top + mh > window.innerHeight - 8) top = Math.max(8, window.innerHeight - mh - 8);
+    menu.style.left = left + 'px';
+    menu.style.top = top + 'px';
+}
+
+function selectPattern(patternName) {
+    if (currentPage) {
+        const page = storyboard.pages[currentPage - 1];
+        page.pattern = patternName;
+        const card = document.querySelector('.card[data-page="' + currentPage + '"]');
+        if (card) {
+            card.dataset.pattern = patternName;
+            const nameEl = card.querySelector('.card-pattern');
+            if (nameEl) nameEl.textContent = patternName;
+            const img = card.querySelector('img');
+            const tpl = findTplImg(patternName);
+            if (img && tpl) { img.dataset.failed = ''; img.style.opacity = 1; img.src = tpl; }
         }
+        refreshStats();
+        toast('已切换为 ' + patternName);
+    }
+    closeMenu();
+}
 
-        function renderGroup(intent, group, page) {
-            const fk = Object.keys(page.fields || {});
-            let html = '<div class="menu-group-title">' + intent + ' · ' + (group.desc || '') + '</div>';
-            for (const item of group.items) {
-                const slots = slotSets[item.name] || [];
-                const missing = fk.filter(k => slots.indexOf(k) < 0);
-                const isCurrent = item.name === page.pattern;
-                const cls = ['menu-item'];
-                if (isCurrent) cls.push('current');
-                if (missing.length) cls.push('incompatible');
-                const compatText = missing.length ? '❌ 缺少字段: ' + missing.join(', ') : '✅ 兼容';
-                html += '<div class="' + cls.join(' ') + '" data-pat="' + item.name + '" onclick="selectPattern(this.dataset.pat)">'
-                    + '<img src="' + (item.tpl_img || FALLBACK) + '" alt="' + item.name + '">'
-                    + '<div class="menu-item-content">'
-                    + '<div class="menu-item-name">' + item.name + '</div>'
-                    + '<div class="menu-item-desc">' + item.desc + '</div>'
-                    + '<div class="menu-item-compat">' + compatText + '</div>'
-                    + '</div></div>';
-            }
-            return html;
+function findTplImg(patternName) {
+    for (const intent in intentGroups) {
+        for (const item of intentGroups[intent].items) {
+            if (item.name === patternName && item.tpl_img) return item.tpl_img;
         }
+    }
+    return null;
+}
 
-        function showMenu(event, pageIdx) {
-            event.preventDefault();
-            currentPage = pageIdx;
-            const page = storyboard.pages[pageIdx - 1];
-            const intent = page._intent || findIntentForPattern(page.pattern);
-            const menu = document.getElementById('contextMenu');
-            let html = '';
-            if (intent && intentGroups[intent]) {
-                html += renderGroup(intent, intentGroups[intent], page);
-                html += '<div class="menu-separator"></div>';
-            }
-            html += '<div class="menu-expander" onclick="showAllIntents(event)">📋 更多版式…</div>';
-            menu.innerHTML = html;
-            positionMenu(menu, event);
+function closeMenu() {
+    const menu = document.getElementById('contextMenu');
+    if (menu) menu.style.display = 'none';
+    currentPage = null;
+}
+
+function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.opacity = 1;
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => { t.style.opacity = 0; }, 1600);
+}
+
+function refreshStats() {
+    const STRUCTURAL = ['cover','toc','section','thanks','refs'];
+    const usage = {};
+    let adjacent = 0;
+    for (let i = 0; i < storyboard.pages.length; i++) {
+        const p = storyboard.pages[i].pattern;
+        usage[p] = (usage[p] || 0) + 1;
+        if (i > 0 && storyboard.pages[i - 1].pattern === p &&
+            STRUCTURAL.indexOf(p) < 0) adjacent++;
+    }
+    let dupPatterns = 0, dupPages = 0;
+    for (const p in usage) {
+        if (usage[p] > 1 && STRUCTURAL.indexOf(p) < 0) {
+            dupPatterns++;
+            dupPages += usage[p];
         }
-
-        function showAllIntents(event) {
-            event.stopPropagation();
-            const page = storyboard.pages[currentPage - 1];
-            const menu = document.getElementById('contextMenu');
-            let html = '';
-            for (const intent in intentGroups) {
-                html += renderGroup(intent, intentGroups[intent], page);
-                html += '<div class="menu-separator"></div>';
+    }
+    const uniq = Object.keys(usage).length;
+    const el = document.getElementById('stats');
+    let txt = '共 ' + storyboard.pages.length + ' 页 · 版式 ' + uniq + ' 种';
+    if (adjacent > 0) txt += ' <span class="bad">· 相邻重复 ' + adjacent + ' 处</span>';
+    else txt += ' <span class="ok">· 无相邻重复</span>';
+    if (dupPatterns > 0) txt += ' <span class="bad">· 重复使用 ' + dupPatterns + ' 种/占 ' + dupPages + ' 页</span>';
+    el.innerHTML = txt;
+    // 更新卡片角标
+    document.querySelectorAll('.card').forEach(card => {
+        const p = storyboard.pages[parseInt(card.dataset.page, 10) - 1].pattern;
+        const n = usage[p] || 0;
+        let badge = card.querySelector('.dup-badge');
+        if (n > 1 && STRUCTURAL.indexOf(p) < 0) {
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'dup-badge';
+                card.querySelector('.thumb-wrap').appendChild(badge);
             }
-            menu.innerHTML = html;
-            positionMenu(menu, event);
+            badge.textContent = '×' + n;
+        } else if (badge) {
+            badge.remove();
         }
+    });
+}
 
-        function positionMenu(menu, event) {
-            menu.style.display = 'block';
-            const rect = event.target.getBoundingClientRect();
-            menu.style.left = rect.right + 10 + 'px';
-            menu.style.top = rect.top + 'px';
-            if (menu.offsetLeft + menu.offsetWidth > window.innerWidth) {
-                menu.style.left = rect.left - menu.offsetWidth - 10 + 'px';
+function collectIssues() {
+    const issues = [];
+    for (let i = 0; i < storyboard.pages.length; i++) {
+        const page = storyboard.pages[i];
+        const item = findPatternItem(page.pattern);
+        if (item) {
+            const c = checkCompat(item, page);
+            if (c.bads.length || c.warns.length) {
+                issues.push('第 ' + (i + 1) + ' 页 [' + page.pattern + ']: '
+                    + c.bads.concat(c.warns).join('; '));
             }
-            if (menu.offsetTop + menu.offsetHeight > window.innerHeight) {
-                menu.style.top = Math.max(0, window.innerHeight - menu.offsetHeight - 10) + 'px';
-            }
+        } else {
+            issues.push('第 ' + (i + 1) + ' 页: 版式 "' + page.pattern + '" 不在版式库中');
         }
+    }
+    return issues;
+}
 
-        function selectPattern(patternName) {
-            if (currentPage) {
-                const page = storyboard.pages[currentPage - 1];
-                page.pattern = patternName;
-                const card = document.querySelector('.card[data-page="' + currentPage + '"]');
-                if (card) {
-                    card.dataset.pattern = patternName;
-                    const nameEl = card.querySelector('.card-pattern');
-                    if (nameEl) nameEl.textContent = patternName;
-                    const img = card.querySelector('img');
-                    const tpl = findTplImg(patternName);
-                    if (img && tpl) img.src = tpl;
-                }
-            }
-            closeMenu();
+function findPatternItem(name) {
+    for (const intent in intentGroups) {
+        for (const item of intentGroups[intent].items) {
+            if (item.name === name) return item;
         }
+    }
+    return null;
+}
 
-        function findTplImg(patternName) {
-            for (const intent in intentGroups) {
-                for (const item of intentGroups[intent].items) {
-                    if (item.name === patternName && item.tpl_img) return item.tpl_img;
-                }
-            }
-            return null;
-        }
+function exportStoryboard() {
+    const issues = collectIssues();
+    const modal = document.getElementById('modalMask');
+    const body = document.getElementById('modalBody');
+    let h = '<h3>导出前体检</h3>';
+    if (issues.length) {
+        h += '<ul>';
+        for (const it of issues) h += '<li class="bad-item">' + ESC(it) + '</li>';
+        h += '</ul><p>以上页面建议修正后再导出（渲染器会兜底替换未知版式，但不兼容槽位会留空）。</p>';
+    } else {
+        h += '<p style="color:#2e7d32">✅ 全部 ' + storyboard.pages.length + ' 页版式兼容，无缺失。</p>';
+    }
+    h += '<div class="modal-actions"><button onclick="closeModal()">取消</button>'
+        + '<button class="primary" onclick="doDownload()">仍要导出</button></div>';
+    body.innerHTML = h;
+    modal.style.display = 'flex';
+}
 
-        function closeMenu() {
-            const menu = document.getElementById('contextMenu');
-            if (menu) menu.style.display = 'none';
-            currentPage = null;
-        }
+function closeModal() {
+    document.getElementById('modalMask').style.display = 'none';
+}
 
-        function exportStoryboard() {
-            const blob = new Blob([JSON.stringify(storyboard, null, 2)], {type: 'application/json'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'storyboard.json';
-            a.click();
-            URL.revokeObjectURL(url);
-        }
+function doDownload() {
+    closeModal();
+    const blob = new Blob([JSON.stringify(storyboard, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'storyboard.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('已导出 storyboard.json');
+}
 
-        // 点击空白处或 ESC 关闭菜单
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.card') && !e.target.closest('.context-menu')) {
-                closeMenu();
-            }
-        });
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeMenu();
-            }
-        });
-    </script>
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.card') && !e.target.closest('.context-menu')) closeMenu();
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { closeMenu(); closeModal(); }
+});
+document.addEventListener('contextmenu', (e) => {
+    if (!e.target.closest('.card') && !e.target.closest('.context-menu')) e.preventDefault();
+});
+refreshStats();
+</script>
 </body>
 </html>

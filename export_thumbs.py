@@ -34,12 +34,16 @@ def _try_win32com(pptx_path, out_dir, width, height, prefix):
         return False
     try:
         ppt = win32com.client.Dispatch("PowerPoint.Application")
-        ppt.Visible = 0  # 不显示界面
+        # 新版 Office 禁止隐藏应用窗口（Visible=0 会抛错），改为可见或跳过
+        try:
+            ppt.Visible = 1
+        except Exception:
+            pass
         deck = ppt.Presentations.Open(os.path.abspath(pptx_path))
         n = deck.Slides.Count
         for i in range(1, n + 1):
             slide = deck.Slides(i)
-            out_path = os.path.join(out_dir, f"{prefix}{i:03d}.png")
+            out_path = os.path.abspath(os.path.join(out_dir, f"{prefix}{i:03d}.png"))
             slide.Export(out_path, "PNG", width, height)
         deck.Close()
         ppt.Quit()
@@ -95,6 +99,7 @@ def _try_pillow(pptx_path, out_dir, width, height, prefix):
         return False
     try:
         prs = Presentation(pptx_path)
+        os.makedirs(out_dir, exist_ok=True)
         n = len(prs.slides)
         for i, slide in enumerate(prs.slides, 1):
             # 简单渲染：取第一张图片（如果有），否则白底黑字占位

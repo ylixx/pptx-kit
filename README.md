@@ -17,7 +17,10 @@ pptx-kit/
 ├── make_viewer.py               # 生成 viewer.html
 ├── verify_pptx.py               # 渲染产物自动质检（页数/占位残留/字段对位/图表数据）
 ├── validate_layout_index.py     # layout_index 校验脚本
+├── scan_layouts.py              # 模板新版式 → patterns.json 槽位映射自动生成（含 --check 漂移校验 / --inventory 全模板盘点）
 ├── tests/run_tests.py           # 自动化回归测试（39 intent 全链路）
+├── tests/test_scan_layouts.py   # scan_layouts.py 专项测试
+├── tests/test_make_viewer.py    # make_viewer.py 专项测试
 ├── template.pptx                # 49种版式模板（assets/）
 └── examples/
     └── storyboard.sample.json    # 示例 storyboard
@@ -103,33 +106,87 @@ python render_pptx.py storyboard.opt.json -o output.pptx
 python tests/run_tests.py   # 纯标准库；39 intent 全链路 + 错误处理回归
 ```
 
-## 📋 新增版式三步法
+## 📋 新增版式三步法（含自动生成工具）
 
-如需添加新版式，只需修改以下三个文件，**无需改动任何 Python 代码**：
+添加新版式**无需改动任何 Python 代码**；`scan_layouts.py` 可把"手工写 JSON"这一步自动化。
 
-### 步骤 1：修改 `patterns.json`
-- 添加新版式定义，包含 `slide`（模板页码）、`desc`、`text_slots`、`image_slots` 等。
-- 示例：
-  ```json
-  "my-new-layout": {
-    "slide": 50,
-    "desc": "我的新版式",
-    "text_slots": { "title": 0, "content": 1 }
-  }
-  ```
+### 步骤 1：在模板中加页 + 运行扫描工具（替代手工写 `patterns.json`）
 
-### 步骤 2：修改 `layout_index.json`
-- 在对应 intent 的 `candidates` 中添加新版式名。
-- 示例：
-  ```json
-  "points-2": {
-    "desc": "两列布局",
-    "candidates": ["text-2", "my-new-layout"]
-  }
-  ```
+在 `assets/template.pptx` 末尾追加新版式页，并给页面上每个**槽位形状重命名**为槽位 key
+（PowerPoint「选择窗格」中双击形状名）：`title`/`s1`/`b1`/`img1` 等；图片/图表/表格形状
+直接命名即可，工具会自动识别类型。然后运行：
 
-### 步骤 3：更新 `template.pptx`
-- 在模板 PPTX 中添加新版式页面，确保页码与 `patterns.json` 中的 `slide` 一致。
+```bash
+# 命名扫描（推荐）：自动按形状命名识别 text/image/chart/table 槽位并写回
+python scan_layouts.py --page 71 --id text-3icon --desc "三卡片带图标" --intent points-3
+
+# 快速映射（不重命名时）：直接给"形状索引=槽位key"
+python scan_layouts.py --page 71 --id text-3icon --map "title=0,s1=1,b1=2,img1=3" --intent points-3
+
+# 交互映射：逐个形状分配槽位
+python scan_layouts.py --page 71 --id text-3icon --interactive
+```
+
+`--intent points-3` 会同时更新 `layout_index.json`（加入候选）和
+`storyboard.schema.json`（enum 追加）。`--dry-run` 只预览不写文件；写回前自动备份 `.bak`。
+
+也可完全手工修改 `patterns.json`（条目格式见下）：
+
+```json
+"my-new-layout": {
+  "slide": 50,
+  "desc": "我的新版式",
+  "text_slots": { "title": 0, "content": 1 }
+}
+```
+
+### 步骤 2：把新版式挂到 intent 候选（`--intent` 已自动完成）
+
+在 `layout_index.json` 对应 intent 的 `candidates` 中添加新版式名：
+
+```json
+"points-2": {
+  "desc": "两列布局",
+  "candidates": ["text-2", "my-new-layout"]
+}
+```
+
+### 步骤 3：模板页就位
+
+确认 `template.pptx` 中新增页页码与 `patterns.json` 中 `slide` 一致（步骤 1 已指定 `--page`）。
+
+### 全模板版式盘点（找"藏着的"版式）
+
+模板里往往有比 `patterns.json` 更多的可用版式页。一键盘点（借鉴
+`pptx-from-layouts-skill` 的 profile 思路：结构指纹 + 启发式用途推断）：
+
+```bash
+python scan_layouts.py --inventory
+```
+
+输出：①**版式族聚类**——结构指纹相同的页归为一族，直接显示"已接入 N 页，
+未接入 M 页"（如 `指纹(文本4 图0 图表0 表0) → 页[3,4,5,6,7,8] · 已接入1页，
+未接入5页`，即 6 个章节页变体只用了 1 个）；②逐页明细含**文本预览**（用于
+区分真正的版式页与使用说明页）；③未接入候选页清单。
+
+发现可用版式后，按上文步骤 1 用 `--page N --map` 或命名扫描录入即可。
+
+### 校验既有映射是否漂移
+
+模板页被改动（增删形状）后，既有 `patterns.json` 的索引可能失效，运行：
+
+```bash
+python scan_layouts.py --check
+```
+
+零漂移时输出 `✅`；任何索引越界或类型不匹配都会逐条报告。
+
+### 专项测试
+
+```bash
+python tests/test_scan_layouts.py   # scan_layouts.py：索引/同步/盘点/冲突
+python tests/test_make_viewer.py    # make_viewer.py：生成/结构/JS 语法/统计
+```
 
 ## 🔧 技术细节
 
@@ -158,16 +215,21 @@ intent 名并记入 `_unresolved_intents`；渲染器遇到未知 pattern 时会
 
 按优先级自动选择导出方式：
 
-1. **win32com.client**（Windows + PowerPoint）：最快最保真。
+1. **win32com.client**（Windows + PowerPoint）：最快最保真。需先装 pywin32：
+   `python -m pip install pywin32`（务必用 `python -m pip`，与当前解释器同环境）。
+   新版 Office 禁止隐藏窗口，工具已自动改为可见模式并跳过该限制；
+   COM 导出要求目标为绝对路径（工具已处理）。
 2. **LibreOffice + PyMuPDF**：跨平台。
-3. **Pillow 离线兜底**：最慢但始终可用。
+3. **Pillow 离线兜底**：最慢但始终可用（无 Office 时仅渲染图片/白底占位，建议装 PowerPoint 获得真实缩略图）。
 
 ### viewer.html 特性
 
 - 纯静态，无 CDN，无网络依赖，双击即用。
-- 右键菜单显示同类候选，支持字段兼容性提示。
-- 点击候选实时更新，导出完整 JSON。
-- 图片失败自动降级显示灰块。
+- **左键 / 右键**点卡片弹出版式菜单（按 intent 分组，候选带模板缩略图与描述）。
+- **兼容性三路检查**：文本槽 / 图片槽 / 图表表格需求逐项判定，缺字段标红、缺图与缺数据标黄。
+- 「更多版式…」展开全部 intent，顶部可返回；点选候选实时更新卡片并 toast 提示。
+- **版式体检**：重复版式自动标角标（×N），工具栏实时统计「版式 N 种 · 相邻重复 K 处 · 重复使用 X 种/占 Y 页」；导出前弹窗逐页列出不兼容项供确认。
+- 图片失败自动降级显示灰块，不崩页面；JS 数据注入已转义 `</script>`。
 
 ## 📝 示例
 
